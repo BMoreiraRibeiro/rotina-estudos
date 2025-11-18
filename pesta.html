@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projeto PESTA - Torre Automática Airsoft</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e2e8f0;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
+        }
+        
+        .header h1 {
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+        
+        .header p {
+            color: #fef3c7;
+            font-size: 1.1em;
+        }
+        
+        .deadline-banner {
+            background: #dc2626;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            background: #1e293b;
+            color: #94a3b8;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .tab:hover {
+            background: #334155;
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border-color: #a78bfa;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .section {
+            background: #0f1624;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid #1e293b;
+        }
+        
+        .section h2 {
+            color: #a78bfa;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #334155;
+        }
+        
+        .task-category {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #8b5cf6;
+        }
+        
+        .task-category h3 {
+            color: #c4b5fd;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .task-category h3 .progress {
+            font-size: 0.8em;
+            color: #94a3b8;
+        }
+        
+        .task-item {
+            background: #0f1624;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            transition: background 0.2s;
+        }
+        
+        .task-item:hover {
+            background: #1a2332;
+        }
+        
+        .task-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            cursor: pointer;
+            accent-color: #10b981;
+            flex-shrink: 0;
+        }
+        
+        .task-content {
+            flex: 1;
+        }
+        
+        .task-label {
+            cursor: pointer;
+            user-select: none;
+            color: #e2e8f0;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .task-item input[type="checkbox"]:checked + .task-content .task-label {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+        
+        .task-expand-btn {
+            background: #334155;
+            color: #94a3b8;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+        
+        .task-expand-btn:hover {
+            background: #475569;
+        }
+        
+        .subtasks {
+            margin-top: 10px;
+            margin-left: 20px;
+            padding-left: 15px;
+            border-left: 2px solid #334155;
+            display: none;
+        }
+        
+        .subtasks.open {
+            display: block;
+        }
+        
+        .subtask-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+        }
+        
+        .subtask-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: #10b981;
+        }
+        
+        .subtask-item label {
+            cursor: pointer;
+            color: #cbd5e1;
+            font-size: 0.9em;
+        }
+        
+        .subtask-item input[type="checkbox"]:checked + label {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+        
+        .add-subtask-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 6px 15px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        
+        .add-subtask-btn:hover {
+            background: #059669;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            background: #1e293b;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 12px;
+            font-family: inherit;
+            font-size: 1em;
+        }
+        
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #8b5cf6;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-weight: 500;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        }
+        
+        .btn-secondary {
+            background: #475569;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .log-entry {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3b82f6;
+            position: relative;
+        }
+        
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .log-title {
+            color: #93c5fd;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+        
+        .log-date {
+            color: #94a3b8;
+            font-size: 0.9em;
+        }
+        
+        .log-subject {
+            display: inline-block;
+            background: #334155;
+            color: #fbbf24;
+            padding: 4px 12px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            margin-bottom: 10px;
+        }
+        
+        .log-text {
+            color: #cbd5e1;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        
+        .log-actions {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .log-action-btn {
+            background: #334155;
+            color: #94a3b8;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85em;
+        }
+        
+        .log-action-btn:hover {
+            background: #475569;
+        }
+        
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .search-bar input {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #8b5cf6;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #a78bfa;
+        }
+        
+        .stat-label {
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+        
+        .progress-bar-container {
+            background: #334155;
+            border-radius: 10px;
+            height: 30px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #10b981, #059669);
+            height: 100%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.open {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: #0f1624;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 2px solid #334155;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h3 {
+            color: #a78bfa;
+        }
+        
+        .close-modal {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+        
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Projeto PESTA</h1>
+            <p>Torre Automática de Airsoft com Computer Vision</p>
+            <div class="deadline-banner">
+                <span>⚠️ DEADLINE: Email Orientador até 30 Novembro 2025</span>
+                <span id="deadlineCounter">-- dias restantes</span>
+            </div>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('overview')">📊 Visão Geral</button>
+            <button class="tab" onclick="switchTab('tasks')">✅ Tarefas</button>
+            <button class="tab" onclick="switchTab('log')">📝 Log de Desenvolvimento</button>
+            <button class="tab" onclick="switchTab('resources')">📚 Recursos</button>
+        </div>
+        
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalTasks">0</div>
+                    <div class="stat-label">Tarefas Totais</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="completedTasks">0</div>
+                    <div class="stat-label">Tarefas Concluídas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalLogs">0</div>
+                    <div class="stat-label">Entradas no Log</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="progressPercent">0%</div>
+                    <div class="stat-label">Progresso Geral</div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>🎯 Objetivos do Projeto</h2>
+                <div style="background: #1e293b; padding: 20px; border-radius: 10px; line-height: 1.8;">
+                    <p style="margin-bottom: 15px;"><strong>Objetivo Principal:</strong> Desenvolver uma torre automática de airsoft capaz de detectar e acompanhar jogadores usando computer vision e controlo robótico.</p>
+                    
+                    <p style="margin-bottom: 10px;"><strong>Componentes Principais:</strong></p>
+                    <ul style="margin-left: 20px; color: #cbd5e1;">
+                        <li>🔧 Estrutura física com base giratória motorizada</li>
+                        <li>🎥 Sistema de câmara para captura de imagens</li>
+                        <li>🤖 Raspberry Pi como controlador central</li>
+                        <li>🧠 Modelo de Computer Vision (YOLO/MobileNet) para deteção de jogadores</li>
+                        <li>⚙️ Sistema de controlo de motores/servos</li>
+                        <li>🔫 Integração com mecanismo de disparo de airsoft</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px;"><strong>Entregáveis:</strong></p>
+                    <ul style="margin-left: 20px; color: #cbd5e1;">
+                        <li>📄 Relatório técnico pormenorizado</li>
+                        <li>📊 Poster científico</li>
+                        <li>💻 Código fonte e documentação</li>
+                        <li>🎥 Demonstração funcional do sistema</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>📅 Timeline do Projeto</h2>
+                <div style="display: grid; gap: 15px;">
+                    <div style="background: #7f1d1d; padding: 15px; border-radius: 8px; border-left: 4px solid #dc2626;">
+                        <div style="color: #fca5a5; font-weight: bold; margin-bottom: 5px;">🔴 NOVEMBRO 2025 - Email Orientador</div>
+                        <div style="color: #fecaca; font-size: 0.9em;">Contactar docente do ISEP e obter confirmação como orientador</div>
+                    </div>
+                    <div style="background: #422006; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                        <div style="color: #fcd34d; font-weight: bold; margin-bottom: 5px;">🟡 DEZEMBRO 2025 - JANEIRO 2026 - Planeamento</div>
+                        <div style="color: #fef3c7; font-size: 0.9em;">Arquitetura do sistema, lista de componentes, orçamento e primeiros testes</div>
+                    </div>
+                    <div style="background: #1e3a8a; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                        <div style="color: #93c5fd; font-weight: bold; margin-bottom: 5px;">🔵 FEVEREIRO-MARÇO 2026 - Desenvolvimento</div>
+                        <div style="color: #dbeafe; font-size: 0.9em;">Construção da estrutura, treino do modelo CV, integração hardware/software</div>
+                    </div>
+                    <div style="background: #1e3a28; padding: 15px; border-radius: 8px; border-left: 4px solid #10b981;">
+                        <div style="color: #6ee7b7; font-weight: bold; margin-bottom: 5px;">🟢 ABRIL-MAIO 2026 - Finalização</div>
+                        <div style="color: #d1fae5; font-size: 0.9em;">Testes finais, documentação, relatório e poster</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tasks Tab -->
+        <div id="tasks" class="tab-content">
+            <div class="section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0;">✅ Gestão de Tarefas</h2>
+                    <div class="btn-group">
+                        <button class="btn btn-success" onclick="openAddTaskModal()">+ Nova Tarefa</button>
+                        <button class="btn btn-secondary" onclick="clearAllTasks()">🗑️ Limpar Concluídas</button>
+                    </div>
+                </div>
+                
+                <div class="progress-bar-container" style="margin-bottom: 30px;">
+                    <div class="progress-bar" id="taskProgressBar">0%</div>
+                </div>
+                
+                <div id="tasksContainer"></div>
+            </div>
+        </div>
+        
+        <!-- Log Tab -->
+        <div id="log" class="tab-content">
+            <div class="section">
+                <h2>📝 Adicionar Entrada ao Log</h2>
+                <form id="logForm" onsubmit="addLogEntry(event)">
+                    <div class="form-group">
+                        <label for="logTitle">Título *</label>
+                        <input type="text" id="logTitle" required placeholder="Ex: Instalação do Raspberry Pi OS">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="logDate">Data *</label>
+                        <input type="date" id="logDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="logSubject">Assunto (Opcional)</label>
+                        <select id="logSubject">
+                            <option value="">Sem assunto específico</option>
+                            <option value="Hardware">🔧 Hardware</option>
+                            <option value="Software">💻 Software</option>
+                            <option value="Computer Vision">🤖 Computer Vision</option>
+                            <option value="Testes">🧪 Testes</option>
+                            <option value="Documentação">📄 Documentação</option>
+                            <option value="Reuniões">👥 Reuniões</option>
+                            <option value="Problemas">⚠️ Problemas</option>
+                            <option value="Conquistas">🎉 Conquistas</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="logText">Descrição *</label>
+                        <textarea id="logText" required placeholder="Descreve o que fizeste, problemas encontrados, soluções implementadas, próximos passos..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success">💾 Guardar Entrada</button>
+                </form>
+            </div>
+            
+            <div class="section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                    <h2 style="margin: 0;">📚 Histórico de Logs</h2>
+                    <div class="btn-group">
+                        <button class="btn" onclick="downloadAllLogs()">⬇️ Download Todos</button>
+                        <button class="btn btn-secondary" onclick="downloadSelectedLogs()">⬇️ Download Selecionados</button>
+                        <button class="btn btn-danger" onclick="clearAllLogs()">🗑️ Limpar Todos</button>
+                    </div>
+                </div>
+                
+                <div class="search-bar">
+                    <input type="text" id="searchLogs" placeholder="🔍 Pesquisar logs..." onkeyup="filterLogs()">
+                    <select id="filterSubject" onchange="filterLogs()">
+                        <option value="">Todos os assuntos</option>
+                        <option value="Hardware">🔧 Hardware</option>
+                        <option value="Software">💻 Software</option>
+                        <option value="Computer Vision">🤖 Computer Vision</option>
+                        <option value="Testes">🧪 Testes</option>
+                        <option value="Documentação">📄 Documentação</option>
+                        <option value="Reuniões">👥 Reuniões</option>
+                        <option value="Problemas">⚠️ Problemas</option>
+                        <option value="Conquistas">🎉 Conquistas</option>
+                    </select>
+                </div>
+                
+                <div id="logsContainer"></div>
+            </div>
+        </div>
+        
+        <!-- Resources Tab -->
+        <div id="resources" class="tab-content">
+            <div class="section">
+                <h2>📚 Recursos Técnicos</h2>
+                
+                <div class="task-category">
+                    <h3>🤖 Computer Vision & Machine Learning</h3>
+                    <div style="line-height: 1.8; color: #cbd5e1;">
+                        <p style="margin-bottom: 10px;"><strong>YOLO (You Only Look Once):</strong></p>
+                        <ul style="margin-left: 20px; margin-bottom: 15px;">
+                            <li><a href="https://github.com/ultralytics/yolov5" target="_blank" style="color: #60a5fa;">YOLOv5 - Ultralytics</a> - Rápido e eficiente para Raspberry Pi</li>
+                            <li><a href="https://github.com/ultralytics/yolov8" target="_blank" style="color: #60a5fa;">YOLOv8 - Ultralytics</a> - Versão mais recente</li>
+                            <li><a href="https://docs.ultralytics.com/" target="_blank" style="color: #60a5fa;">Documentação YOLO</a></li>
+                        </ul>
+                        
+                        <p style="margin-bottom: 10px;"><strong>MobileNet & TensorFlow:</strong></p>
+                        <ul style="margin-left: 20px; margin-bottom: 15px;">
+                            <li><a href="https://github.com/tensorflow/models/tree/master/research/object_detection" target="_blank" style="color: #60a5fa;">TensorFlow Object Detection API</a></li>
+                            <li><a href="https://www.tensorflow.org/lite/examples/object_detection/overview" target="_blank" style="color: #60a5fa;">TensorFlow Lite - Otimizado para dispositivos embarcados</a></li>
+                        </ul>
+                        
+                        <p style="margin-bottom: 10px;"><strong>Dataset & Annotation:</strong></p>
+                        <ul style="margin-left: 20px;">
+                            <li><a href="https://www.makesense.ai/" target="_blank" style="color: #60a5fa;">Makesense.ai</a> - Anotação online de imagens</li>
+                            <li><a href="https://github.com/tzutalin/labelImg" target="_blank" style="color: #60a5fa;">LabelImg</a> - Ferramenta desktop para anotar</li>
+                            <li><a href="https://roboflow.com/" target="_blank" style="color: #60a5fa;">Roboflow</a> - Gestão de datasets e augmentation</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="task-category">
+                    <h3>🔧 Raspberry Pi & Hardware</h3>
+                    <div style="line-height: 1.8; color: #cbd5e1;">
+                        <p style="margin-bottom: 10px;"><strong>Controlo de GPIO:</strong></p>
+                        <ul style="margin-left: 20px; margin-bottom: 15px;">
+                            <li><a href="https://gpiozero.readthedocs.io/" target="_blank" style="color: #60a5fa;">GPIOZero Documentation</a> - Biblioteca Python para GPIO</li>
+                            <li><a href="https://pinout.xyz/" target="_blank" style="color: #60a5fa;">Pinout.xyz</a> - Mapa de pinos Raspberry Pi</li>
+                        </ul>
+                        
+                        <p style="margin-bottom: 10px;"><strong>Motores & Servos:</strong></p>
+                        <ul style="margin-left: 20px; margin-bottom: 15px;">
+                            <li><a href="https://learn.adafruit.com/adafruit-16-channel-pwm-servo-hat-for-raspberry-pi" target="_blank" style="color: #60a5fa;">Adafruit Servo HAT</a> - Controlar até 16 servos</li>
+                            <li><a href="https://www.pololu.com/docs/0J40" target="_blank" style="color: #60a5fa;">Pololu Motor Drivers</a></li>
+                        </ul>
+                        
+                        <p style="margin-bottom: 10px;"><strong>Câmaras:</strong></p>
+                        <ul style="margin-left: 20px;">
+                            <li><a href="https://picamera.readthedocs.io/" target="_blank" style="color: #60a5fa;">PiCamera Documentation</a> - Para Raspberry Pi Camera Module</li>
+                            <li><a href="https://opencv.org/" target="_blank" style="color: #60a5fa;">OpenCV</a> - Para qualquer câmara USB</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="task-category">
+                    <h3>📖 Tutoriais & Guias</h3>
+                    <div style="line-height: 1.8; color: #cbd5e1;">
+                        <ul style="margin-left: 20px;">
+                            <li><a href="https://www.youtube.com/c/NicholasRenotte" target="_blank" style="color: #60a5fa;">Nicholas Renotte</a> - Excelentes tutoriais de CV</li>
+                            <li><a href="https://www.pyimagesearch.com/" target="_blank" style="color: #60a5fa;">PyImageSearch</a> - Blog de Computer Vision</li>
+                            <li><a href="https://realpython.com/face-detection-in-python-using-a-webcam/" target="_blank" style="color: #60a5fa;">Real Python - Face Detection</a></li>
+                            <li><a href="https://github.com/mikeshardmind/raspberry-pi-picamera-yolo" target="_blank" style="color: #60a5fa;">YOLO com PiCamera</a> - Exemplo completo</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Task Modal -->
+    <div id="addTaskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>➕ Nova Tarefa</h3>
+                <button class="close-modal" onclick="closeAddTaskModal()">✕</button>
+            </div>
+            <form id="addTaskForm" onsubmit="addNewTask(event)">
+                <div class="form-group">
+                    <label for="taskCategory">Categoria *</label>
+                    <select id="taskCategory" required>
+                        <option value="Email & Orientador">📧 Email & Orientador</option>
+                        <option value="Hardware">🔧 Hardware</option>
+                        <option value="Software">💻 Software</option>
+                        <option value="Computer Vision">🤖 Computer Vision</option>
+                        <option value="Documentação">📄 Documentação</option>
+                        <option value="Outro">📌 Outro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="taskName">Nome da Tarefa *</label>
+                    <input type="text" id="taskName" required placeholder="Ex: Treinar modelo YOLO com dataset personalizado">
+                </div>
+                <button type="submit" class="btn btn-success">Adicionar</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // Initialize
+        let tasks = JSON.parse(localStorage.getItem('pestaTasks')) || createDefaultTasks();
+        let logs = JSON.parse(localStorage.getItem('pestaLogs')) || [];
+        let selectedLogs = new Set();
+        
+        function createDefaultTasks() {
+            return {
+                'Email & Orientador': [
+                    { id: 1, name: 'Definir tema exato', completed: true, subtasks: [] },
+                    { id: 2, name: 'Escrever email proposta', completed: false, subtasks: [] },
+                    { id: 3, name: 'Identificar 2-3 docentes possíveis', completed: false, subtasks: [] },
+                    { id: 4, name: 'Enviar email (ATÉ 30 NOV!)', completed: false, subtasks: [] },
+                    { id: 5, name: 'Obter resposta positiva', completed: false, subtasks: [] }
+                ],
+                'Hardware': [
+                    { id: 6, name: 'Desenhar estrutura base', completed: false, subtasks: [] },
+                    { id: 7, name: 'Lista completa de componentes', completed: false, subtasks: [] },
+                    { id: 8, name: 'Orçamento e compras', completed: false, subtasks: [] },
+                    { id: 9, name: 'Construir estrutura física', completed: false, subtasks: [] },
+                    { id: 10, name: 'Integrar base giratória motorizada', completed: false, subtasks: [] },
+                    { id: 11, name: 'Montar sistema de disparo', completed: false, subtasks: [] }
+                ],
+                'Software': [
+                    { id: 12, name: 'Setup Raspberry Pi + OS', completed: false, subtasks: [] },
+                    { id: 13, name: 'Testar câmara e captura vídeo', completed: false, subtasks: [] },
+                    { id: 14, name: 'Código controlo motores', completed: false, subtasks: [] },
+                    { id: 15, name: 'Integração CV + controlo físico', completed: false, subtasks: [] }
+                ],
+                'Computer Vision': [
+                    { id: 16, name: 'Recolher dataset', completed: false, subtasks: [] },
+                    { id: 17, name: 'Anotar/label dataset', completed: false, subtasks: [] },
+                    { id: 18, name: 'Escolher modelo (YOLO/MobileNet)', completed: false, subtasks: [] },
+                    { id: 19, name: 'Treinar modelo de deteção', completed: false, subtasks: [] },
+                    { id: 20, name: 'Otimizar para Raspberry Pi', completed: false, subtasks: [] }
+                ],
+                'Documentação': [
+                    { id: 21, name: 'Estrutura do relatório', completed: false, subtasks: [] },
+                    { id: 22, name: 'Introdução + Estado da Arte', completed: false, subtasks: [] },
+                    { id: 23, name: 'Metodologia + Arquitetura', completed: false, subtasks: [] },
+                    { id: 24, name: 'Implementação', completed: false, subtasks: [] },
+                    { id: 25, name: 'Testes e Resultados', completed: false, subtasks: [] },
+                    { id: 26, name: 'Conclusões + Trabalho Futuro', completed: false, subtasks: [] },
+                    { id: 27, name: 'Criar poster científico', completed: false, subtasks: [] },
+                    { id: 28, name: 'Revisão final relatório', completed: false, subtasks: [] }
+                ]
+            };
+        }
+        
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            if (tabName === 'tasks') {
+                renderTasks();
+            } else if (tabName === 'log') {
+                renderLogs();
+            } else if (tabName === 'overview') {
+                updateStats();
+            }
+        }
+        
+        // Deadline counter
+        function updateDeadline() {
+            const deadline = new Date('2025-11-30');
+            const today = new Date();
+            const diffTime = deadline - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            const counter = document.getElementById('deadlineCounter');
+            if (counter) {
+                counter.textContent = diffDays > 0 ? `${diffDays} dias restantes` : 'PRAZO EXPIRADO!';
+                if (diffDays <= 3 && diffDays > 0) {
+                    counter.style.background = '#7f1d1d';
+                    counter.style.padding = '5px 15px';
+                    counter.style.borderRadius = '5px';
+                }
+            }
+        }
+        
+        // Tasks management
+        function renderTasks() {
+            const container = document.getElementById('tasksContainer');
+            container.innerHTML = '';
+            
+            for (const [category, taskList] of Object.entries(tasks)) {
+                const completed = taskList.filter(t => t.completed).length;
+                const total = taskList.length;
+                
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'task-category';
+                categoryDiv.innerHTML = `
+                    <h3>
+                        ${category}
+                        <span class="progress">${completed}/${total}</span>
+                    </h3>
+                `;
+                
+                taskList.forEach(task => {
+                    const taskDiv = document.createElement('div');
+                    taskDiv.className = 'task-item';
+                    
+                    const subtasksHtml = task.subtasks && task.subtasks.length > 0 ? `
+                        <button class="task-expand-btn" onclick="toggleSubtasks(${task.id})">
+                            ${task.subtasks.filter(st => st.completed).length}/${task.subtasks.length} subtarefas
+                        </button>
+                        <div class="subtasks" id="subtasks-${task.id}">
+                            ${task.subtasks.map((st, idx) => `
+                                <div class="subtask-item">
+                                    <input type="checkbox" id="subtask-${task.id}-${idx}" 
+                                        ${st.completed ? 'checked' : ''}
+                                        onchange="toggleSubtask(${task.id}, ${idx})">
+                                    <label for="subtask-${task.id}-${idx}">${st.name}</label>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : '';
+                    
+                    taskDiv.innerHTML = `
+                        <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                            onchange="toggleTask('${category}', ${task.id})">
+                        <div class="task-content">
+                            <label class="task-label">${task.name}</label>
+                            ${subtasksHtml}
+                            <button class="add-subtask-btn" onclick="addSubtask(${task.id})">+ Subtarefa</button>
+                        </div>
+                    `;
+                    
+                    categoryDiv.appendChild(taskDiv);
+                });
+                
+                container.appendChild(categoryDiv);
+            }
+            
+            updateTaskProgress();
+        }
+        
+        function toggleTask(category, taskId) {
+            const task = tasks[category].find(t => t.id === taskId);
+            if (task) {
+                task.completed = !task.completed;
+                saveTasks();
+                renderTasks();
+                updateStats();
+            }
+        }
+        
+        function toggleSubtasks(taskId) {
+            const subtasksDiv = document.getElementById(`subtasks-${taskId}`);
+            if (subtasksDiv) {
+                subtasksDiv.classList.toggle('open');
+            }
+        }
+        
+        function toggleSubtask(taskId, subtaskIndex) {
+            for (const category in tasks) {
+                const task = tasks[category].find(t => t.id === taskId);
+                if (task && task.subtasks[subtaskIndex]) {
+                    task.subtasks[subtaskIndex].completed = !task.subtasks[subtaskIndex].completed;
+                    saveTasks();
+                    renderTasks();
+                    break;
+                }
+            }
+        }
+        
+        function addSubtask(taskId) {
+            const name = prompt('Nome da subtarefa:');
+            if (!name) return;
+            
+            for (const category in tasks) {
+                const task = tasks[category].find(t => t.id === taskId);
+                if (task) {
+                    if (!task.subtasks) task.subtasks = [];
+                    task.subtasks.push({ name, completed: false });
+                    saveTasks();
+                    renderTasks();
+                    break;
+                }
+            }
+        }
+        
+        function updateTaskProgress() {
+            let total = 0;
+            let completed = 0;
+            
+            for (const taskList of Object.values(tasks)) {
+                total += taskList.length;
+                completed += taskList.filter(t => t.completed).length;
+            }
+            
+            const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+            const progressBar = document.getElementById('taskProgressBar');
+            if (progressBar) {
+                progressBar.style.width = percentage + '%';
+                progressBar.textContent = percentage + '%';
+            }
+        }
+        
+        function saveTasks() {
+            localStorage.setItem('pestaTasks', JSON.stringify(tasks));
+        }
+        
+        function clearAllTasks() {
+            if (confirm('Remover todas as tarefas concluídas?')) {
+                for (const category in tasks) {
+                    tasks[category] = tasks[category].filter(t => !t.completed);
+                }
+                saveTasks();
+                renderTasks();
+                updateStats();
+            }
+        }
+        
+        // Add Task Modal
+        function openAddTaskModal() {
+            document.getElementById('addTaskModal').classList.add('open');
+        }
+        
+        function closeAddTaskModal() {
+            document.getElementById('addTaskModal').classList.remove('open');
+            document.getElementById('addTaskForm').reset();
+        }
+        
+        function addNewTask(event) {
+            event.preventDefault();
+            
+            const category = document.getElementById('taskCategory').value;
+            const name = document.getElementById('taskName').value;
+            
+            const maxId = Math.max(...Object.values(tasks).flat().map(t => t.id), 0);
+            const newTask = {
+                id: maxId + 1,
+                name: name,
+                completed: false,
+                subtasks: []
+            };
+            
+            if (!tasks[category]) {
+                tasks[category] = [];
+            }
+            tasks[category].push(newTask);
+            
+            saveTasks();
+            closeAddTaskModal();
+            renderTasks();
+            updateStats();
+        }
+        
+        // Log management
+        function addLogEntry(event) {
+            event.preventDefault();
+            
+            const log = {
+                id: Date.now(),
+                title: document.getElementById('logTitle').value,
+                date: document.getElementById('logDate').value,
+                subject: document.getElementById('logSubject').value,
+                text: document.getElementById('logText').value
+            };
+            
+            logs.unshift(log);
+            saveLogs();
+            renderLogs();
+            updateStats();
+            
+            document.getElementById('logForm').reset();
+            document.getElementById('logDate').valueAsDate = new Date();
+            
+            alert('✅ Entrada adicionada ao log!');
+        }
+        
+        function renderLogs() {
+            const container = document.getElementById('logsContainer');
+            
+            if (logs.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <p>Ainda não há entradas no log</p>
+                        <p style="font-size: 0.9em; margin-top: 10px;">Adiciona a tua primeira entrada acima!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = logs.map(log => `
+                <div class="log-entry" data-log-id="${log.id}">
+                    <div class="log-actions">
+                        <input type="checkbox" onchange="toggleLogSelection(${log.id})" 
+                            style="width: 18px; height: 18px; cursor: pointer; accent-color: #8b5cf6;">
+                        <button class="log-action-btn" onclick="deleteLog(${log.id})">🗑️</button>
+                    </div>
+                    <div class="log-header">
+                        <div class="log-title">${log.title}</div>
+                        <div class="log-date">${formatDate(log.date)}</div>
+                    </div>
+                    ${log.subject ? `<div class="log-subject">${log.subject}</div>` : ''}
+                    <div class="log-text">${log.text}</div>
+                </div>
+            `).join('');
+        }
+        
+        function filterLogs() {
+            const searchTerm = document.getElementById('searchLogs').value.toLowerCase();
+            const subjectFilter = document.getElementById('filterSubject').value;
+            
+            const filtered = logs.filter(log => {
+                const matchesSearch = log.title.toLowerCase().includes(searchTerm) || 
+                                     log.text.toLowerCase().includes(searchTerm);
+                const matchesSubject = !subjectFilter || log.subject === subjectFilter;
+                return matchesSearch && matchesSubject;
+            });
+            
+            const container = document.getElementById('logsContainer');
+            
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔍</div>
+                        <p>Nenhum log encontrado</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = filtered.map(log => `
+                <div class="log-entry" data-log-id="${log.id}">
+                    <div class="log-actions">
+                        <input type="checkbox" onchange="toggleLogSelection(${log.id})" 
+                            style="width: 18px; height: 18px; cursor: pointer; accent-color: #8b5cf6;">
+                        <button class="log-action-btn" onclick="deleteLog(${log.id})">🗑️</button>
+                    </div>
+                    <div class="log-header">
+                        <div class="log-title">${log.title}</div>
+                        <div class="log-date">${formatDate(log.date)}</div>
+                    </div>
+                    ${log.subject ? `<div class="log-subject">${log.subject}</div>` : ''}
+                    <div class="log-text">${log.text}</div>
+                </div>
+            `).join('');
+        }
+        
+        function toggleLogSelection(logId) {
+            if (selectedLogs.has(logId)) {
+                selectedLogs.delete(logId);
+            } else {
+                selectedLogs.add(logId);
+            }
+        }
+        
+        function deleteLog(logId) {
+            if (confirm('Apagar esta entrada?')) {
+                logs = logs.filter(l => l.id !== logId);
+                saveLogs();
+                renderLogs();
+                updateStats();
+            }
+        }
+        
+        function clearAllLogs() {
+            if (confirm('⚠️ Isto vai apagar TODOS os logs! Tens a certeza?')) {
+                logs = [];
+                selectedLogs.clear();
+                saveLogs();
+                renderLogs();
+                updateStats();
+            }
+        }
+        
+        function downloadAllLogs() {
+            if (logs.length === 0) {
+                alert('Não há logs para exportar!');
+                return;
+            }
+            
+            const content = generateLogsMarkdown(logs);
+            downloadFile('pesta_logs_completo.md', content);
+        }
+        
+        function downloadSelectedLogs() {
+            if (selectedLogs.size === 0) {
+                alert('Seleciona pelo menos um log!');
+                return;
+            }
+            
+            const selected = logs.filter(l => selectedLogs.has(l.id));
+            const content = generateLogsMarkdown(selected);
+            downloadFile('pesta_logs_selecionados.md', content);
+            
+            selectedLogs.clear();
+            renderLogs();
+        }
+        
+        function generateLogsMarkdown(logList) {
+            let content = `# Log de Desenvolvimento - Projeto PESTA
+## Torre Automática de Airsoft com Computer Vision
+
+**Data de exportação:** ${formatDate(new Date().toISOString().split('T')[0])}
+**Total de entradas:** ${logList.length}
+
+---
+
+`;
+            
+            logList.forEach((log, index) => {
+                content += `## ${index + 1}. ${log.title}
+
+**Data:** ${formatDate(log.date)}
+${log.subject ? `**Assunto:** ${log.subject}\n` : ''}
+
+${log.text}
+
+---
+
+`;
+            });
+            
+            return content;
+        }
+        
+        function downloadFile(filename, content) {
+            const blob = new Blob([content], { type: 'text/markdown' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+        
+        function saveLogs() {
+            localStorage.setItem('pestaLogs', JSON.stringify(logs));
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString + 'T00:00:00');
+            return date.toLocaleDateString('pt-PT', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+        }
+        
+        // Stats
+        function updateStats() {
+            let totalTasks = 0;
+            let completedTasks = 0;
+            
+            for (const taskList of Object.values(tasks)) {
+                totalTasks += taskList.length;
+                completedTasks += taskList.filter(t => t.completed).length;
+            }
+            
+            const percentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+            
+            document.getElementById('totalTasks').textContent = totalTasks;
+            document.getElementById('completedTasks').textContent = completedTasks;
+            document.getElementById('totalLogs').textContent = logs.length;
+            document.getElementById('progressPercent').textContent = percentage + '%';
+        }
+        
+        // Initialize
+        document.getElementById('logDate').valueAsDate = new Date();
+        updateDeadline();
+        updateStats();
+        setInterval(updateDeadline, 3600000); // Update every hour
+    </script>
+</body>
+</html>
