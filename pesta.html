@@ -935,22 +935,11 @@
         </div>
     </div>
     
+    <!-- Firebase Configuration (external file) -->
+    <script src="firebase-config.js"></script>
+    
     <script>
-        // ===== FIREBASE CONFIGURATION =====
-        // INSTRUÇÕES: Substitua estas credenciais pelas suas do Firebase Console
-        // 1. Aceda a https://console.firebase.google.com/
-        // 2. Crie um novo projeto (ou use existente)
-        // 3. Vá em Project Settings > Your apps > Web app
-        // 4. Copie a configuração firebaseConfig e cole aqui
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyBLcU-3JPu3NYNlJgvWg9Hr4cz6DanXeU0",
-            authDomain: "pesta-organizador.firebaseapp.com",
-            projectId: "pesta-organizador",
-            storageBucket: "pesta-organizador.firebasestorage.app",
-            messagingSenderId: "1026990979564",
-            appId: "1:1026990979564:web:3b6a7c89dd9c492369e8c9"
-        };
+        // ===== FIREBASE INITIALIZATION =====
         
         // Inicializar Firebase
         let db = null;
