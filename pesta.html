@@ -140,6 +140,111 @@
             gap: 12px;
             transition: background 0.2s;
         }
+
+        /* Hierarchical level-based layout */
+        .task-item {
+            padding: 8px 10px;
+            margin-bottom: 4px;
+            gap: 10px;
+            display: flex;
+            align-items: center;
+            background: #0f1624;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .task-item:hover {
+            background: #1a2332;
+        }
+
+        /* Indentation by level */
+        .task-level-1 {
+            padding-left: 10px;
+        }
+
+        .task-level-2 {
+            padding-left: 34px;
+        }
+
+        .task-level-3 {
+            padding-left: 58px;
+        }
+
+        .task-level-4 {
+            padding-left: 82px;
+        }
+
+        .task-level-5 {
+            padding-left: 106px;
+        }
+
+        /* Colors by level */
+        .task-level-1 .task-content {
+            color: #a78bfa;
+            font-weight: 600;
+            font-size: 1.05em;
+        }
+
+        .task-level-2 .task-content {
+            color: #c4b5fd;
+            font-weight: 500;
+        }
+
+        .task-level-3 .task-content {
+            color: #ddd6fe;
+        }
+
+        .task-level-4 .task-content {
+            color: #cbd5e1;
+            font-size: 0.95em;
+        }
+
+        .task-level-5 .task-content {
+            color: #94a3b8;
+            font-size: 0.9em;
+        }
+
+        .task-content {
+            flex: 1;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Toggle for subtasks */
+        .task-toggle {
+            border: none;
+            background: transparent;
+            color: #cbd5e1;
+            font-size: 0.9em;
+            cursor: pointer;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s ease;
+            flex-shrink: 0;
+        }
+
+        .task-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .task-toggle.empty {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .subtasks {
+            display: none;
+            margin-top: 8px;
+            padding-left: 26px;
+        }
+
+        .subtasks.open {
+            display: block;
+        }
         
         .task-item:hover {
             background: #1a2332;
@@ -300,6 +405,30 @@
         
         .btn-secondary {
             background: #475569;
+        }
+
+        .btn-small {
+            background: transparent;
+            border: none;
+            color: #cbd5e1;
+            cursor: pointer;
+            padding: 4px 6px;
+            font-size: 0.95em;
+            border-radius: 4px;
+        }
+
+        .btn-small.danger {
+            color: #ff6b6b;
+        }
+
+        .task-edit-input {
+            background: #0b1220;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 0.95em;
+            width: 60%;
         }
         
         .btn-group {
@@ -587,6 +716,9 @@
                     <div class="btn-group">
                         <button class="btn btn-success" onclick="openAddTaskModal()">+ Nova Tarefa</button>
                         <button class="btn btn-secondary" onclick="clearAllTasks()">🗑️ Limpar Concluídas</button>
+                        <button class="btn" onclick="expandAll()" title="Expandir todas as subtarefas">🔽 Expandir todos</button>
+                        <button class="btn" onclick="collapseAll()" title="Recolher todas as subtarefas">🔼 Recolher todos</button>
+                        <button class="btn" onclick="addCategory()" title="Adicionar assunto">➕ Assunto</button>
                     </div>
                 </div>
                 
@@ -728,6 +860,39 @@
                             <li><a href="https://realpython.com/face-detection-in-python-using-a-webcam/" target="_blank" style="color: #60a5fa;">Real Python - Face Detection</a></li>
                             <li><a href="https://github.com/mikeshardmind/raspberry-pi-picamera-yolo" target="_blank" style="color: #60a5fa;">YOLO com PiCamera</a> - Exemplo completo</li>
                         </ul>
+                
+                        <!-- Resources management: add new resource and bibliography (IEEE) -->
+                        <div style="margin-top: 20px; padding: 12px; background: #0b1220; border-radius: 8px; border: 1px solid #1e293b;">
+                            <h4 style="color: #c4b5fd; margin-bottom: 10px;">➕ Adicionar Recurso / Bibliografia</h4>
+                            <form id="addResourceForm" onsubmit="addResource(event)" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; align-items: end;">
+                                <div>
+                                    <label style="font-size:0.85em; color:#94a3b8">Autores</label>
+                                    <input type="text" id="resAuthors" placeholder="Ex: A. Silva; B. Pereira" style="width:100%; padding:8px; border-radius:6px; background:#0f1624; color:#e2e8f0; border:1px solid #334155;">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.85em; color:#94a3b8">Título</label>
+                                    <input type="text" id="resTitle" placeholder="Título do recurso" style="width:100%; padding:8px; border-radius:6px; background:#0f1624; color:#e2e8f0; border:1px solid #334155;">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.85em; color:#94a3b8">Veículo / Fonte</label>
+                                    <input type="text" id="resVenue" placeholder="Revista / Site / Conferência" style="width:100%; padding:8px; border-radius:6px; background:#0f1624; color:#e2e8f0; border:1px solid #334155;">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.85em; color:#94a3b8">Ano</label>
+                                    <input type="text" id="resYear" placeholder="2021" style="width:100%; padding:8px; border-radius:6px; background:#0f1624; color:#e2e8f0; border:1px solid #334155;">
+                                </div>
+                                <div style="grid-column: 1 / -1; display:flex; gap:8px;">
+                                    <input type="text" id="resUrl" placeholder="https://... (opcional)" style="flex:1; padding:8px; border-radius:6px; background:#0f1624; color:#e2e8f0; border:1px solid #334155;">
+                                    <button class="btn" type="submit" style="background:#8b5cf6; color:white; padding:8px 12px; border-radius:6px;">Adicionar</button>
+                                    <button type="button" class="btn" onclick="exportIEEE()" style="background:#10b981; color:white; padding:8px 12px; border-radius:6px;">Export IEEE</button>
+                                </div>
+                            </form>
+
+                            <div id="bibliography" style="margin-top:12px; color:#cbd5e1;">
+                                <h4 style="color:#a78bfa; margin-bottom:6px;">Bibliografia (IEEE)</h4>
+                                <ol id="bibList" style="padding-left: 20px; color:#e2e8f0;"></ol>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -763,50 +928,77 @@
     </div>
     
     <script>
+        // Migrate old data structure (subtasks -> children)
+        function migrateTaskStructure(tasks) {
+            function migrate(task) {
+                // Convert subtasks to children
+                if (task.subtasks !== undefined) {
+                    task.children = task.subtasks;
+                    delete task.subtasks;
+                }
+                // Ensure children exists
+                if (!task.children) task.children = [];
+                // Ensure collapsed exists
+                if (task.collapsed === undefined) task.collapsed = false;
+                // Recursively migrate children
+                if (task.children && task.children.length > 0) {
+                    task.children.forEach(child => migrate(child));
+                }
+            }
+            
+            for (const category in tasks) {
+                tasks[category].forEach(task => migrate(task));
+            }
+            return tasks;
+        }
+        
         // Initialize
         let tasks = JSON.parse(localStorage.getItem('pestaTasks')) || createDefaultTasks();
+        tasks = migrateTaskStructure(tasks);
+        localStorage.setItem('pestaTasks', JSON.stringify(tasks)); // Save migrated structure
+        
         let logs = JSON.parse(localStorage.getItem('pestaLogs')) || [];
         let selectedLogs = new Set();
         
         function createDefaultTasks() {
             return {
                 'Email & Orientador': [
-                    { id: 1, name: 'Definir tema exato', completed: true, subtasks: [] },
-                    { id: 2, name: 'Escrever email proposta', completed: false, subtasks: [] },
-                    { id: 3, name: 'Identificar 2-3 docentes possíveis', completed: false, subtasks: [] },
-                    { id: 4, name: 'Enviar email (ATÉ 30 NOV!)', completed: false, subtasks: [] },
-                    { id: 5, name: 'Obter resposta positiva', completed: false, subtasks: [] }
+                    { id: 1, name: 'Definir tema exato', completed: true, collapsed: false, children: [] },
+                    { id: 2, name: 'Escrever email proposta', completed: false, collapsed: false, children: [] },
+                    { id: 3, name: 'Identificar 2-3 docentes possíveis', completed: false, collapsed: false, children: [] },
+                    { id: 4, name: 'Enviar email (ATÉ 30 NOV!)', completed: false, collapsed: false, children: [] },
+                    { id: 5, name: 'Obter resposta positiva', completed: false, collapsed: false, children: [] }
                 ],
                 'Hardware': [
-                    { id: 6, name: 'Desenhar estrutura base', completed: false, subtasks: [] },
-                    { id: 7, name: 'Lista completa de componentes', completed: false, subtasks: [] },
-                    { id: 8, name: 'Orçamento e compras', completed: false, subtasks: [] },
-                    { id: 9, name: 'Construir estrutura física', completed: false, subtasks: [] },
-                    { id: 10, name: 'Integrar base giratória motorizada', completed: false, subtasks: [] },
-                    { id: 11, name: 'Montar sistema de disparo', completed: false, subtasks: [] }
+                    { id: 6, name: 'Desenhar estrutura base', completed: false, collapsed: false, children: [] },
+                    { id: 7, name: 'Lista completa de componentes', completed: false, collapsed: false, children: [] },
+                    { id: 8, name: 'Orçamento e compras', completed: false, collapsed: false, children: [] },
+                    { id: 9, name: 'Construir estrutura física', completed: false, collapsed: false, children: [] },
+                    { id: 10, name: 'Integrar base giratória motorizada', completed: false, collapsed: false, children: [] },
+                    { id: 11, name: 'Montar sistema de disparo', completed: false, collapsed: false, children: [] }
                 ],
                 'Software': [
-                    { id: 12, name: 'Setup Raspberry Pi + OS', completed: false, subtasks: [] },
-                    { id: 13, name: 'Testar câmara e captura vídeo', completed: false, subtasks: [] },
-                    { id: 14, name: 'Código controlo motores', completed: false, subtasks: [] },
-                    { id: 15, name: 'Integração CV + controlo físico', completed: false, subtasks: [] }
+                    { id: 12, name: 'Setup Raspberry Pi + OS', completed: false, collapsed: false, children: [] },
+                    { id: 13, name: 'Testar câmara e captura vídeo', completed: false, collapsed: false, children: [] },
+                    { id: 14, name: 'Código controlo motores', completed: false, collapsed: false, children: [] },
+                    { id: 15, name: 'Integração CV + controlo físico', completed: false, collapsed: false, children: [] }
                 ],
                 'Computer Vision': [
-                    { id: 16, name: 'Recolher dataset', completed: false, subtasks: [] },
-                    { id: 17, name: 'Anotar/label dataset', completed: false, subtasks: [] },
-                    { id: 18, name: 'Escolher modelo (YOLO/MobileNet)', completed: false, subtasks: [] },
-                    { id: 19, name: 'Treinar modelo de deteção', completed: false, subtasks: [] },
-                    { id: 20, name: 'Otimizar para Raspberry Pi', completed: false, subtasks: [] }
+                    { id: 16, name: 'Recolher dataset', completed: false, collapsed: false, children: [] },
+                    { id: 17, name: 'Anotar/label dataset', completed: false, collapsed: false, children: [] },
+                    { id: 18, name: 'Escolher modelo (YOLO/MobileNet)', completed: false, collapsed: false, children: [] },
+                    { id: 19, name: 'Treinar modelo de deteção', completed: false, collapsed: false, children: [] },
+                    { id: 20, name: 'Otimizar para Raspberry Pi', completed: false, collapsed: false, children: [] }
                 ],
                 'Documentação': [
-                    { id: 21, name: 'Estrutura do relatório', completed: false, subtasks: [] },
-                    { id: 22, name: 'Introdução + Estado da Arte', completed: false, subtasks: [] },
-                    { id: 23, name: 'Metodologia + Arquitetura', completed: false, subtasks: [] },
-                    { id: 24, name: 'Implementação', completed: false, subtasks: [] },
-                    { id: 25, name: 'Testes e Resultados', completed: false, subtasks: [] },
-                    { id: 26, name: 'Conclusões + Trabalho Futuro', completed: false, subtasks: [] },
-                    { id: 27, name: 'Criar poster científico', completed: false, subtasks: [] },
-                    { id: 28, name: 'Revisão final relatório', completed: false, subtasks: [] }
+                    { id: 21, name: 'Estrutura do relatório', completed: false, collapsed: false, children: [] },
+                    { id: 22, name: 'Introdução + Estado da Arte', completed: false, collapsed: false, children: [] },
+                    { id: 23, name: 'Metodologia + Arquitetura', completed: false, collapsed: false, children: [] },
+                    { id: 24, name: 'Implementação', completed: false, collapsed: false, children: [] },
+                    { id: 25, name: 'Testes e Resultados', completed: false, collapsed: false, children: [] },
+                    { id: 26, name: 'Conclusões + Trabalho Futuro', completed: false, collapsed: false, children: [] },
+                    { id: 27, name: 'Criar poster científico', completed: false, collapsed: false, children: [] },
+                    { id: 28, name: 'Revisão final relatório', completed: false, collapsed: false, children: [] }
                 ]
             };
         }
@@ -846,106 +1038,487 @@
             }
         }
         
-        // Tasks management
+        // Tasks management - Hierarchical recursive rendering
         function renderTasks() {
             const container = document.getElementById('tasksContainer');
             container.innerHTML = '';
             
             for (const [category, taskList] of Object.entries(tasks)) {
-                const completed = taskList.filter(t => t.completed).length;
-                const total = taskList.length;
-                
                 const categoryDiv = document.createElement('div');
                 categoryDiv.className = 'task-category';
-                categoryDiv.innerHTML = `
-                    <h3>
-                        ${category}
-                        <span class="progress">${completed}/${total}</span>
-                    </h3>
+                
+                // Count completed including all children
+                const { total, completed } = countTasksRecursive(taskList);
+                
+                const categoryHeader = document.createElement('h3');
+                categoryHeader.innerHTML = `
+                    ${escapeHtml(category)}
+                    <span class="progress">${completed}/${total}</span>
                 `;
                 
-                taskList.forEach(task => {
-                    const taskDiv = document.createElement('div');
-                    taskDiv.className = 'task-item';
-                    
-                    const subtasksHtml = task.subtasks && task.subtasks.length > 0 ? `
-                        <button class="task-expand-btn" onclick="toggleSubtasks(${task.id})">
-                            ${task.subtasks.filter(st => st.completed).length}/${task.subtasks.length} subtarefas
-                        </button>
-                        <div class="subtasks" id="subtasks-${task.id}">
-                            ${task.subtasks.map((st, idx) => `
-                                <div class="subtask-item">
-                                    <input type="checkbox" id="subtask-${task.id}-${idx}" 
-                                        ${st.completed ? 'checked' : ''}
-                                        onchange="toggleSubtask(${task.id}, ${idx})">
-                                    <label for="subtask-${task.id}-${idx}">${st.name}</label>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : '';
-                    
-                    taskDiv.innerHTML = `
-                        <input type="checkbox" ${task.completed ? 'checked' : ''} 
-                            onchange="toggleTask('${category}', ${task.id})">
-                        <div class="task-content">
-                            <label class="task-label">${task.name}</label>
-                            ${subtasksHtml}
-                            <button class="add-subtask-btn" onclick="addSubtask(${task.id})">+ Subtarefa</button>
-                        </div>
-                    `;
-                    
-                    categoryDiv.appendChild(taskDiv);
-                });
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn-small danger';
+                deleteBtn.title = 'Apagar assunto';
+                deleteBtn.innerHTML = '🗑️';
+                deleteBtn.onclick = () => deleteCategory(category);
+                categoryHeader.appendChild(deleteBtn);
                 
+                categoryDiv.appendChild(categoryHeader);
+                
+                const taskListUl = document.createElement('div');
+                taskListUl.style.display = 'flex';
+                taskListUl.style.flexDirection = 'column';
+                taskListUl.style.gap = '2px';
+                
+                // Render each top-level task recursively
+                taskList.forEach(task => renderTask(task, taskListUl, 1, category));
+                
+                categoryDiv.appendChild(taskListUl);
                 container.appendChild(categoryDiv);
             }
             
             updateTaskProgress();
         }
         
-        function toggleTask(category, taskId) {
-            const task = tasks[category].find(t => t.id === taskId);
-            if (task) {
-                task.completed = !task.completed;
-                saveTasks();
-                renderTasks();
-                updateStats();
+        // Recursive function to render a task and its children
+        function renderTask(task, parentElement, level, category) {
+            const taskDiv = document.createElement('div');
+            taskDiv.className = `task-item task-level-${level}`;
+            taskDiv.dataset.taskId = task.id;
+            
+            // Toggle button (▼)
+            const toggle = document.createElement('button');
+            toggle.className = `task-toggle ${task.children.length === 0 ? 'empty' : ''} ${task.collapsed ? 'collapsed' : ''}`;
+            toggle.innerHTML = '▼';
+            toggle.onclick = () => toggleTaskCollapse(task.id);
+            
+            // Checkbox
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'task-checkbox';
+            checkbox.checked = task.completed;
+            checkbox.onchange = () => toggleTaskComplete(task.id);
+            
+            // Content
+            const content = document.createElement('span');
+            content.className = 'task-content';
+            content.id = `item-label-${task.id}`;
+            content.textContent = task.name;
+            if (task.completed) {
+                content.style.textDecoration = 'line-through';
+                content.style.opacity = '0.5';
+            }
+            
+            // Edit button
+            const editBtn = document.createElement('button');
+            editBtn.className = 'btn-small';
+            editBtn.title = 'Editar';
+            editBtn.innerHTML = '✏️';
+            editBtn.onclick = () => startEdit(task.id);
+            
+            // Delete button
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn-small danger';
+            deleteBtn.title = 'Apagar';
+            deleteBtn.innerHTML = '🗑️';
+            deleteBtn.onclick = () => deleteItemById(task.id);
+            
+            // Add child button
+            const addChildBtn = document.createElement('button');
+            addChildBtn.className = 'add-subtask-btn';
+            addChildBtn.innerHTML = '+ Sub';
+            addChildBtn.onclick = () => addSubtask(task.id);
+            
+            // Assemble
+            taskDiv.appendChild(toggle);
+            taskDiv.appendChild(checkbox);
+            taskDiv.appendChild(content);
+            taskDiv.appendChild(editBtn);
+            taskDiv.appendChild(deleteBtn);
+            taskDiv.appendChild(addChildBtn);
+            
+            parentElement.appendChild(taskDiv);
+            
+            // RECURSION: Render children if not collapsed
+            if (task.children && task.children.length > 0 && !task.collapsed) {
+                task.children.forEach(child => renderTask(child, parentElement, level + 1, category));
             }
         }
         
-        function toggleSubtasks(taskId) {
-            const subtasksDiv = document.getElementById(`subtasks-${taskId}`);
-            if (subtasksDiv) {
-                subtasksDiv.classList.toggle('open');
+        // Count total and completed tasks recursively
+        function countTasksRecursive(taskList) {
+            let total = 0;
+            let completed = 0;
+            
+            function count(tasks) {
+                tasks.forEach(task => {
+                    total++;
+                    if (task.completed) completed++;
+                    if (task.children && task.children.length > 0) {
+                        count(task.children);
+                    }
+                });
             }
+            
+            count(taskList);
+            return { total, completed };
         }
         
-        function toggleSubtask(taskId, subtaskIndex) {
-            for (const category in tasks) {
-                const task = tasks[category].find(t => t.id === taskId);
-                if (task && task.subtasks[subtaskIndex]) {
-                    task.subtasks[subtaskIndex].completed = !task.subtasks[subtaskIndex].completed;
-                    saveTasks();
-                    renderTasks();
-                    break;
+        // Toggle task completion (marks all children with same state)
+        function toggleTaskComplete(taskId) {
+            function findAndToggle(taskList) {
+                for (let task of taskList) {
+                    if (task.id === taskId) {
+                        task.completed = !task.completed;
+                        
+                        // Mark ALL children with the same state
+                        function markChildren(t, completed) {
+                            t.completed = completed;
+                            if (t.children && t.children.length > 0) {
+                                t.children.forEach(child => markChildren(child, completed));
+                            }
+                        }
+                        markChildren(task, task.completed);
+                        return true;
+                    }
+                    if (task.children && task.children.length > 0) {
+                        if (findAndToggle(task.children)) return true;
+                    }
                 }
+                return false;
             }
-        }
-        
-        function addSubtask(taskId) {
-            const name = prompt('Nome da subtarefa:');
-            if (!name) return;
             
             for (const category in tasks) {
-                const task = tasks[category].find(t => t.id === taskId);
-                if (task) {
-                    if (!task.subtasks) task.subtasks = [];
-                    task.subtasks.push({ name, completed: false });
-                    saveTasks();
-                    renderTasks();
-                    break;
+                if (findAndToggle(tasks[category])) break;
+            }
+            saveTasks();
+            renderTasks();
+            updateStats();
+        }
+        
+        // Toggle expand/collapse for task children
+        function toggleTaskCollapse(taskId) {
+            function findAndToggle(taskList) {
+                for (let task of taskList) {
+                    if (task.id === taskId) {
+                        task.collapsed = !task.collapsed;
+                        return true;
+                    }
+                    if (task.children && task.children.length > 0) {
+                        if (findAndToggle(task.children)) return true;
+                    }
+                }
+                return false;
+            }
+            
+            for (const category in tasks) {
+                if (findAndToggle(tasks[category])) break;
+            }
+            saveTasks();
+            renderTasks();
+        }
+
+        // Add / remove categories (assuntos)
+        function addCategory() {
+            const name = prompt('Nome do novo assunto (ex: Desenvolvimento, Documentação):');
+            if (!name) return;
+            const trimmed = name.trim();
+            if (!trimmed) return;
+            if (tasks.hasOwnProperty(trimmed)) { alert('Assunto já existe'); return; }
+            tasks[trimmed] = [];
+            saveTasks();
+            renderTasks();
+        }
+
+        function deleteCategory(category) {
+            if (!confirm(`Apagar o assunto "${category}" e todas as suas tarefas?`)) return;
+            if (tasks.hasOwnProperty(category)) {
+                delete tasks[category];
+                saveTasks();
+                renderTasks();
+            }
+        }
+
+
+        
+        // Add a child task
+        function addSubtask(parentId) {
+            const name = prompt('Nome da subtarefa:');
+            if (!name || !name.trim()) return;
+            
+            const newTask = {
+                id: getNextId(),
+                name: name.trim(),
+                completed: false,
+                collapsed: false,
+                children: []
+            };
+            
+            function findAndAdd(taskList) {
+                for (let task of taskList) {
+                    if (task.id === parentId) {
+                        if (!task.children) task.children = [];
+                        task.children.push(newTask);
+                        return true;
+                    }
+                    if (task.children && task.children.length > 0) {
+                        if (findAndAdd(task.children)) return true;
+                    }
+                }
+                return false;
+            }
+            
+            for (const category in tasks) {
+                if (findAndAdd(tasks[category])) break;
+            }
+            
+            saveTasks();
+            renderTasks();
+        }
+
+        // Generate and persist unique ids for tasks/children
+        function getNextId() {
+            if (!window.pestaNextId) {
+                // compute max id from current tasks
+                let maxId = 0;
+                for (const list of Object.values(tasks)) {
+                    for (const t of list) {
+                        if (t.id && t.id > maxId) maxId = t.id;
+                        function scanChildren(children) {
+                            for (const c of children || []) {
+                                if (c.id && c.id > maxId) maxId = c.id;
+                                if (c.children) scanChildren(c.children);
+                            }
+                        }
+                        if (t.children) scanChildren(t.children);
+                    }
+                }
+                window.pestaNextId = maxId + 1;
+            }
+            const id = window.pestaNextId++;
+            localStorage.setItem('pestaNextId', String(window.pestaNextId));
+            return id;
+        }
+
+        // Find an item by id across tasks and children. Returns {item, parentArray, category}
+        function findItemById(id) {
+            for (const [category, list] of Object.entries(tasks)) {
+                // check top-level tasks
+                for (const t of list) {
+                    if (t.id === id) return { item: t, parentArray: list, category };
+                    // recursively search children
+                    const found = searchInChildren(t.children, id, category);
+                    if (found) return found;
                 }
             }
+            return null;
+        }
+
+        // Helper to recursively search children
+        function searchInChildren(children, id, category) {
+            if (!children || children.length === 0) return null;
+            for (const child of children) {
+                if (child.id === id) return { item: child, parentArray: children, category };
+                const found = searchInChildren(child.children, id, category);
+                if (found) return found;
+            }
+            return null;
+        }
+
+
+
+        // Expand or collapse all tasks
+        function expandAll() {
+            function expand(taskList) {
+                taskList.forEach(task => {
+                    task.collapsed = false;
+                    if (task.children && task.children.length > 0) {
+                        expand(task.children);
+                    }
+                });
+            }
+            
+            for (const category in tasks) {
+                expand(tasks[category]);
+            }
+            saveTasks();
+            renderTasks();
+        }
+
+        function collapseAll() {
+            function collapse(taskList) {
+                taskList.forEach(task => {
+                    task.collapsed = true;
+                    if (task.children && task.children.length > 0) {
+                        collapse(task.children);
+                    }
+                });
+            }
+            
+            for (const category in tasks) {
+                collapse(tasks[category]);
+            }
+            saveTasks();
+            renderTasks();
+        }
+
+                // Utility: escape HTML when injecting into innerHTML
+                function escapeHtml(str) {
+                    if (!str && str !== '') return '';
+                    return String(str)
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#39;');
+                }
+
+                // Start inline edit for an item (task or subtask)
+                function startEdit(id) {
+                    const label = document.getElementById(`item-label-${id}`);
+                    if (!label) return;
+                    const current = label.textContent || '';
+                    // replace label with input (we'll handle save on blur or Enter)
+                    label.outerHTML = `<input id="item-input-${id}" class="task-edit-input" type="text" value="${escapeHtml(current)}" onblur="saveEdit(${id})" onkeydown="handleEditKey(event, ${id})" />`;
+                    const input = document.getElementById(`item-input-${id}`);
+                    if (input) { input.focus(); input.select(); }
+                }
+
+                function handleEditKey(e, id) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        saveEdit(id);
+                    } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        cancelEdit(id);
+                    }
+                }
+
+                function saveEdit(id) {
+                    const input = document.getElementById(`item-input-${id}`);
+                    if (!input) return;
+                    const val = input.value.trim();
+                    if (val === '') { alert('O nome não pode ficar vazio'); input.focus(); return; }
+                    const found = findItemById(id);
+                    if (found && found.item) {
+                        found.item.name = val;
+                        saveTasks();
+                        renderTasks();
+                    } else {
+                        // fallback just re-render
+                        renderTasks();
+                    }
+                }
+
+                function cancelEdit(id) {
+                    renderTasks();
+                }
+
+                // Delete an item (task or subtask) by id
+                function deleteItemById(id) {
+                    if (!confirm('Remover esta tarefa/subtarefa?')) return;
+                    const found = findItemById(id);
+                    if (found && found.parentArray) {
+                        const idx = found.parentArray.indexOf(found.item);
+                        if (idx >= 0) {
+                            found.parentArray.splice(idx, 1);
+                            saveTasks();
+                            renderTasks();
+                        }
+                    }
+                }
+
+        // --- Resources / Bibliography (IEEE) ---
+        function loadResources() {
+            const saved = JSON.parse(localStorage.getItem('pestaResources') || 'null');
+            let resources = saved || [];
+
+            // If no saved resources, parse existing anchors in the resources tab
+            if (!saved) {
+                const resAnchors = document.querySelectorAll('#resources a');
+                resAnchors.forEach(a => {
+                    const title = a.textContent.trim();
+                    const url = a.href;
+                    resources.push({ authors: '', title, venue: '', year: '', url });
+                });
+                // Deduplicate by URL
+                const uniq = [];
+                const seen = new Set();
+                resources.forEach(r => {
+                    if (!seen.has(r.url)) { seen.add(r.url); uniq.push(r); }
+                });
+                resources = uniq;
+                localStorage.setItem('pestaResources', JSON.stringify(resources));
+            }
+
+            window.pestaResources = resources;
+            renderResources();
+        }
+
+        function renderResources() {
+            const resources = window.pestaResources || [];
+            const bibList = document.getElementById('bibList');
+            if (!bibList) return;
+            bibList.innerHTML = resources.map((r, i) => `<li>${formatIEEE(r, i+1)} <button onclick="deleteResource(${i})" style="margin-left:8px;background:transparent;color:#ff6b6b;border:none;cursor:pointer;">🗑️</button></li>`).join('');
+            // Also update a simple resources list (if you want to show raw links)
+            // (left as future improvement)
+        }
+
+        function addResource(event) {
+            event.preventDefault();
+            const authors = document.getElementById('resAuthors').value.trim();
+            const title = document.getElementById('resTitle').value.trim();
+            const venue = document.getElementById('resVenue').value.trim();
+            const year = document.getElementById('resYear').value.trim();
+            const url = document.getElementById('resUrl').value.trim();
+
+            if (!title) { alert('Título é obrigatório'); return; }
+
+            const resources = window.pestaResources || [];
+            resources.unshift({ authors, title, venue, year, url });
+            window.pestaResources = resources;
+            localStorage.setItem('pestaResources', JSON.stringify(resources));
+            renderResources();
+            document.getElementById('addResourceForm').reset();
+        }
+
+        function deleteResource(index) {
+            const resources = window.pestaResources || [];
+            if (index < 0 || index >= resources.length) return;
+            if (!confirm('Remover este recurso?')) return;
+            resources.splice(index, 1);
+            window.pestaResources = resources;
+            localStorage.setItem('pestaResources', JSON.stringify(resources));
+            renderResources();
+        }
+
+        function formatIEEE(r, num) {
+            // Basic IEEE-like formatting. Falls back to available fields.
+            const authors = r.authors ? r.authors + ', ' : '';
+            const title = r.title ? `"${r.title}," ` : '';
+            const venue = r.venue ? r.venue + ', ' : '';
+            const year = r.year ? r.year : '';
+            const url = r.url ? ` [Online]. Available: ${r.url}.` : '';
+            const accessed = ` Accessed: ${new Date().toLocaleDateString('pt-PT')}.`;
+            const core = `${authors}${title}${venue}${year}.${url}${accessed}`;
+            return core;
+        }
+
+        function exportIEEE() {
+            const resources = window.pestaResources || [];
+            const text = resources.map((r,i) => `[${i+1}] ${stripHtml(formatIEEE(r,i+1))}`).join('\n\n');
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'bibliografia_ieee.txt';
+            a.click();
+        }
+
+        function stripHtml(input) {
+            const div = document.createElement('div');
+            div.innerHTML = input;
+            return div.textContent || div.innerText || '';
         }
         
         function updateTaskProgress() {
@@ -1232,6 +1805,8 @@ ${log.text}
         document.getElementById('logDate').valueAsDate = new Date();
         updateDeadline();
         updateStats();
+        renderTasks();
+        loadResources();
         setInterval(updateDeadline, 3600000); // Update every hour
     </script>
 </body>
