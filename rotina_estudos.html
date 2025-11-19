@@ -899,13 +899,13 @@
         /* PESTA organizer and state helpers removed from this page */
         
         // Toggle completion of study blocks
-        function toggleComplete(element) {
+        async function toggleComplete(element) {
             element.classList.toggle('completed');
-            saveState();
+            await saveState();
         }
         
         // Update progress bars
-        function updateProgress(amount) {
+        async function updateProgress(amount) {
             const subjects = ['electro', 'power', 'vibon'];
             subjects.forEach(subject => {
                 const bar = document.getElementById(subject + '-bar');
@@ -916,11 +916,11 @@
                 bar.textContent = currentValue + '%';
                 percent.textContent = currentValue + '%';
             });
-            saveState();
+            await saveState();
         }
         
         // Reset progress
-        function resetProgress() {
+        async function resetProgress() {
             if (confirm('Tens a certeza que queres reiniciar o progresso?')) {
                 const subjects = ['electro', 'power', 'vibon'];
                 subjects.forEach(subject => {
@@ -934,7 +934,7 @@
                 document.querySelectorAll('.study-block').forEach(block => {
                     block.classList.remove('completed');
                 });
-                saveState();
+                await saveState();
             }
         }
         
@@ -1050,11 +1050,14 @@ DICAS:
         }
         
         // Initialize
-        updateCountdown();
-        loadState();
-        // PESTA tasks removed from this page
-        renderWeek(0); // Load first week on start
-        setInterval(updateCountdown, 3600000); // Update every hour
+        async function init() {
+            updateCountdown();
+            await loadState();
+            renderWeek(0); // Load first week on start
+            setInterval(updateCountdown, 3600000); // Update every hour
+        }
+        
+        init();
     </script>
 </body>
 </html>
