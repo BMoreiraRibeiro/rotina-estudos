@@ -127,6 +127,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
+            position: relative;
         }
         
         .study-block:hover {
@@ -137,6 +138,39 @@
         .study-block.completed {
             background: rgba(34, 197, 94, 0.3);
             text-decoration: line-through;
+        }
+        
+        .study-block.has-notes {
+            border-left: 4px solid #fbbf24;
+        }
+        
+        .notes-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(139, 92, 246, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        
+        .notes-btn:hover {
+            background: rgba(139, 92, 246, 1);
+            transform: scale(1.1);
+        }
+        
+        .notes-btn.has-content {
+            background: #fbbf24;
         }
         
         .time {
@@ -156,6 +190,80 @@
             border-radius: 10px;
             margin-bottom: 30px;
             border: 1px solid #334155;
+        }
+        
+        .notes-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .notes-modal.open {
+            display: flex;
+        }
+        
+        .notes-content {
+            background: #0f1624;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 600px;
+            width: 90%;
+            border: 1px solid #334155;
+        }
+        
+        .notes-content h3 {
+            color: #a78bfa;
+            margin-bottom: 15px;
+        }
+        
+        .notes-content textarea {
+            width: 100%;
+            min-height: 200px;
+            background: #1e293b;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 12px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+        }
+        
+        .notes-content textarea:focus {
+            outline: none;
+            border-color: #8b5cf6;
+        }
+        
+        .notes-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .notes-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .notes-actions .save-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        
+        .notes-actions .cancel-btn {
+            background: #475569;
+            color: white;
         }
         
         .tips-section h3 {
@@ -523,6 +631,18 @@
         </div>
     </div>
     
+    <!-- Notes Modal -->
+    <div id="notesModal" class="notes-modal">
+        <div class="notes-content">
+            <h3>📝 Notas da Sessão</h3>
+            <textarea id="notesTextarea" placeholder="Adiciona aqui as tuas notas, dúvidas, ou observações sobre esta sessão de estudo..."></textarea>
+            <div class="notes-actions">
+                <button class="save-btn" onclick="saveNotes()">💾 Guardar</button>
+                <button class="cancel-btn" onclick="closeNotes()">❌ Cancelar</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Firebase Configuration (external file) -->
     <script src="firebase-config.js"></script>
     
@@ -847,8 +967,48 @@
         ];
 
         let currentWeek = 0;
+        let currentNotes = {}; // Store notes for each block
+        let currentEditingBlock = null;
         
         /* PESTA task management removed from this page */
+
+        // Notes modal functions
+        function openNotes(event, blockIndex) {
+            event.stopPropagation(); // Prevent triggering block completion
+            currentEditingBlock = blockIndex;
+            const modal = document.getElementById('notesModal');
+            const textarea = document.getElementById('notesTextarea');
+            textarea.value = currentNotes[blockIndex] || '';
+            modal.classList.add('open');
+            textarea.focus();
+        }
+
+        function closeNotes() {
+            document.getElementById('notesModal').classList.remove('open');
+            currentEditingBlock = null;
+        }
+
+        async function saveNotes() {
+            const textarea = document.getElementById('notesTextarea');
+            const noteText = textarea.value.trim();
+            
+            if (noteText) {
+                currentNotes[currentEditingBlock] = noteText;
+            } else {
+                delete currentNotes[currentEditingBlock];
+            }
+            
+            closeNotes();
+            await saveState();
+            renderWeek(currentWeek); // Refresh to show/hide note indicator
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && currentEditingBlock !== null) {
+                closeNotes();
+            }
+        });
 
         function renderWeek(weekIndex) {
             const week = weeks[weekIndex];
@@ -856,16 +1016,20 @@
             document.getElementById('weekTitle').textContent = week.title;
             document.getElementById('weekSelector').value = weekIndex;
             
+            let blockIndex = 0; // Global block counter
             let html = '';
             week.days.forEach(day => {
                 html += `<div class="day-card"><h3>${day.name}</h3>`;
                 day.blocks.forEach(block => {
+                    const hasNote = currentNotes && currentNotes[blockIndex];
                     html += `
-                        <div class="study-block" onclick="toggleComplete(this)">
+                        <div class="study-block ${hasNote ? 'has-notes' : ''}" onclick="toggleComplete(this)" data-block-index="${blockIndex}">
+                            <button class="notes-btn ${hasNote ? 'has-content' : ''}" onclick="openNotes(event, ${blockIndex})" title="Adicionar notas">📝</button>
                             <span class="time">${block.time}</span>
                             <span class="subject">${block.subject}</span>
                         </div>
                     `;
+                    blockIndex++;
                 });
                 html += '</div>';
             });
@@ -944,7 +1108,8 @@
                 electro: document.getElementById('electro-bar').style.width,
                 power: document.getElementById('power-bar').style.width,
                 vibon: document.getElementById('vibon-bar').style.width,
-                completed: []
+                completed: [],
+                notes: currentNotes // Save notes
             };
             
             document.querySelectorAll('.study-block.completed').forEach((block, index) => {
@@ -1004,6 +1169,9 @@
                     bar.textContent = state[subject] || '0%';
                     percent.textContent = state[subject] || '0%';
                 });
+                
+                // Load notes
+                currentNotes = state.notes || {};
                 
                 const blocks = document.querySelectorAll('.study-block');
                 state.completed.forEach(index => {
