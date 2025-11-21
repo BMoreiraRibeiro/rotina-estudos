@@ -369,6 +369,15 @@
                 <span class="stat-label">Entradas no Log</span>
             </div>
         </div>
+
+        <div class="section" style="margin-top:20px;">
+            <h3 style="color:#a78bfa; margin-bottom:10px;">🗓️ Calendário de Exames</h3>
+            <div style="background:#0f1624; padding:15px; border-radius:8px; border:1px solid #334155; color:#cbd5e1;">
+                <ul id="examScheduleList" style="list-style:none; padding-left:0; margin:0;">
+                    <!-- Filled by JS -->
+                </ul>
+            </div>
+        </div>
         
         <div class="quick-links">
             <h3>🔗 Links Rápidos</h3>
@@ -425,16 +434,35 @@
     </script>
 
     <script>
-        // Calculate days until exams
+        // Calculate days until exams and render exam schedule
         function updateExamCountdown() {
-            const examDate = new Date('2026-01-19');
+            const exams = [
+                { date: new Date('2026-01-19T14:30:00'), subject: 'Eletromagnetismo' },
+                { date: new Date('2026-01-26'), subject: 'Potência' },
+                { date: new Date('2026-01-28'), subject: 'VIBON' }
+            ];
+
+            const firstExam = exams[0];
             const today = new Date();
-            const diffTime = examDate - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
+            const diffDays = Math.ceil((firstExam.date - today) / (1000 * 60 * 60 * 24));
+
             const element = document.getElementById('examDays');
             if (element) {
                 element.textContent = diffDays > 0 ? diffDays : '0';
+            }
+
+            // Render schedule list
+            const ul = document.getElementById('examScheduleList');
+            if (ul) {
+                ul.innerHTML = '';
+                exams.forEach(e => {
+                    const li = document.createElement('li');
+                    const d = e.date;
+                    const dateStr = d.toLocaleDateString();
+                    const timeStr = (d.getHours() || d.getMinutes()) ? (' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })) : '';
+                    li.innerHTML = `<strong>${dateStr}${timeStr}</strong> — ${e.subject}`;
+                    ul.appendChild(li);
+                });
             }
         }
         
@@ -448,7 +476,7 @@
             const element = document.getElementById('daysLeft');
 
             // Calculate days until exams (used after PESTA deadline)
-            const examDate = new Date('2026-01-19');
+            const examDate = new Date('2026-01-19T14:30:00');
             const diffExam = Math.ceil((examDate - today) / (1000 * 60 * 60 * 24));
 
             if (element) {

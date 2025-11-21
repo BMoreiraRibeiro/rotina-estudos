@@ -1051,7 +1051,7 @@
 
         // Calculate days until start of exams
         function updateCountdown() {
-            const examDate = new Date('2026-01-19');
+            const examDate = new Date('2026-01-19T14:30:00');
             const today = new Date();
             const diffTime = examDate - today;
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
