@@ -632,7 +632,8 @@
             <h1>🎯 Projeto PESTA</h1>
             <p>Torre Automática de Airsoft com Computer Vision</p>
             <div class="deadline-banner">
-                <span>⚠️ DEADLINE: Email Orientador até 30 Novembro 2025</span>
+                <span id="deadlineText">⚠️ DEADLINE: Email Orientador até 30 Novembro 2025</span>
+                <button class="btn-small" onclick="editDeadlineBanner()" title="Editar banner">✏️</button>
                 <span id="deadlineCounter">-- dias restantes</span>
             </div>
             <div id="firebaseStatus" style="margin-top: 10px; padding: 8px; border-radius: 5px; font-size: 0.9em; text-align: center; display: none;">
@@ -982,6 +983,7 @@
         
         // Initialize
         let tasks = {};
+        let categoriesOrder = [];
         let logs = [];
         let selectedLogs = new Set();
         let isLoading = true;
@@ -997,6 +999,27 @@
                 statusTextEl.textContent = '🔄 Sincronizando com Firebase...';
                 
                 await loadTasksFromFirebase();
+                // load meta (order/banner) if available
+                try {
+                    const metaDoc = await db.collection('pesta').doc('meta').get();
+                    if (metaDoc.exists) {
+                        const md = metaDoc.data() || {};
+                        categoriesOrder = md.order || Object.keys(tasks || {});
+                        if (md.banner) {
+                            const bannerEl = document.querySelector('.deadline-banner span');
+                            if (bannerEl) bannerEl.innerHTML = md.banner;
+                        }
+                    } else {
+                        categoriesOrder = Object.keys(tasks || {});
+                        // persist default meta
+                        await db.collection('pesta').doc('meta').set({ order: categoriesOrder });
+                    }
+                    // cache locally
+                    localStorage.setItem('pestaCategoriesOrder', JSON.stringify(categoriesOrder));
+                } catch (e) {
+                    console.warn('Erro ao carregar meta:', e);
+                    categoriesOrder = JSON.parse(localStorage.getItem('pestaCategoriesOrder')) || Object.keys(tasks || {});
+                }
                 
                 statusEl.style.background = '#059669';
                 statusTextEl.textContent = '✅ Sincronizado com Firebase';
@@ -1004,11 +1027,18 @@
             } else {
                 tasks = JSON.parse(localStorage.getItem('pestaTasks')) || createDefaultTasks();
                 tasks = migrateTaskStructure(tasks);
+                categoriesOrder = JSON.parse(localStorage.getItem('pestaCategoriesOrder')) || Object.keys(tasks || {});
                 
                 statusEl.style.display = 'block';
                 statusEl.style.background = '#dc2626';
                 statusTextEl.textContent = '⚠️ Firebase não configurado - usando apenas localStorage';
                 setTimeout(() => { statusEl.style.display = 'none'; }, 5000);
+                // load banner text from localStorage if available
+                const savedBanner = localStorage.getItem('pestaBannerText');
+                if (savedBanner) {
+                    const bannerEl = document.getElementById('deadlineText');
+                    if (bannerEl) bannerEl.innerHTML = savedBanner;
+                }
             }
             
             logs = JSON.parse(localStorage.getItem('pestaLogs')) || [];
@@ -1019,6 +1049,19 @@
             renderTasks();
             renderLogs();
         })();
+
+        // Save meta (order/banner)
+        async function saveMeta() {
+            // persist locally
+            localStorage.setItem('pestaCategoriesOrder', JSON.stringify(categoriesOrder));
+            if (firebaseEnabled) {
+                try {
+                    await db.collection('pesta').doc('meta').set({ order: categoriesOrder }, { merge: true });
+                } catch (e) {
+                    console.warn('Erro ao guardar meta no Firebase', e);
+                }
+            }
+        }
         
         function createDefaultTasks() {
             return {
@@ -1097,13 +1140,35 @@
                 }
             }
         }
+
+        // Edit the deadline/banner text
+        async function editDeadlineBanner() {
+            const el = document.getElementById('deadlineText');
+            const current = el ? el.innerHTML : '';
+            const value = prompt('Editar texto do banner de DEADLINE:', current);
+            if (value === null) return; // cancelled
+            if (el) el.innerHTML = value;
+            // save to meta doc
+            categoriesOrder = categoriesOrder || Object.keys(tasks || {});
+            if (firebaseEnabled) {
+                try {
+                    await db.collection('pesta').doc('meta').set({ banner: value }, { merge: true });
+                } catch (e) {
+                    console.warn('Erro ao guardar banner no Firebase', e);
+                }
+            }
+            // also keep in localStorage
+            localStorage.setItem('pestaBannerText', value);
+        }
         
         // Tasks management - Hierarchical recursive rendering
         function renderTasks() {
             const container = document.getElementById('tasksContainer');
             container.innerHTML = '';
             
-            for (const [category, taskList] of Object.entries(tasks)) {
+            // Render according to categoriesOrder (allows custom ordering)
+            for (const category of (categoriesOrder.length ? categoriesOrder : Object.keys(tasks))) {
+                const taskList = tasks[category] || [];
                 const categoryDiv = document.createElement('div');
                 categoryDiv.className = 'task-category';
                 
@@ -1121,6 +1186,21 @@
                 deleteBtn.title = 'Apagar assunto';
                 deleteBtn.innerHTML = '🗑️';
                 deleteBtn.onclick = () => deleteCategory(category);
+                // move up / down buttons
+                const moveUpBtn = document.createElement('button');
+                moveUpBtn.className = 'btn-small';
+                moveUpBtn.title = 'Mover para cima';
+                moveUpBtn.innerHTML = '⬆️';
+                moveUpBtn.onclick = () => { moveCategoryUp(category); };
+
+                const moveDownBtn = document.createElement('button');
+                moveDownBtn.className = 'btn-small';
+                moveDownBtn.title = 'Mover para baixo';
+                moveDownBtn.innerHTML = '⬇️';
+                moveDownBtn.onclick = () => { moveCategoryDown(category); };
+
+                categoryHeader.appendChild(moveUpBtn);
+                categoryHeader.appendChild(moveDownBtn);
                 categoryHeader.appendChild(deleteBtn);
                 
                 categoryDiv.appendChild(categoryHeader);
@@ -1286,6 +1366,9 @@
             if (!trimmed) return;
             if (tasks.hasOwnProperty(trimmed)) { alert('Assunto já existe'); return; }
             tasks[trimmed] = [];
+            // add to ordering
+            categoriesOrder.push(trimmed);
+            saveMeta();
             saveTasks();
             renderTasks();
         }
@@ -1294,8 +1377,36 @@
             if (!confirm(`Apagar o assunto "${category}" e todas as suas tarefas?`)) return;
             if (tasks.hasOwnProperty(category)) {
                 delete tasks[category];
+                // remove from ordering
+                const idx = categoriesOrder.indexOf(category);
+                if (idx !== -1) categoriesOrder.splice(idx, 1);
+                saveMeta();
                 saveTasks();
                 renderTasks();
+            }
+        }
+
+        function moveCategoryUp(category) {
+            const idx = categoriesOrder.indexOf(category);
+            if (idx > 0) {
+                const tmp = categoriesOrder[idx - 1];
+                categoriesOrder[idx - 1] = categoriesOrder[idx];
+                categoriesOrder[idx] = tmp;
+                saveMeta();
+                renderTasks();
+                updateStats();
+            }
+        }
+
+        function moveCategoryDown(category) {
+            const idx = categoriesOrder.indexOf(category);
+            if (idx !== -1 && idx < categoriesOrder.length - 1) {
+                const tmp = categoriesOrder[idx + 1];
+                categoriesOrder[idx + 1] = categoriesOrder[idx];
+                categoriesOrder[idx] = tmp;
+                saveMeta();
+                renderTasks();
+                updateStats();
             }
         }
 
@@ -1646,6 +1757,8 @@
         
         function saveTasks() {
             saveTasksToFirebase();
+            // ensure meta (order/banner) also persisted
+            if (categoriesOrder) saveMeta();
         }
         
         function clearAllTasks() {
