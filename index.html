@@ -176,7 +176,7 @@
         }
         
         .urgent-banner {
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
             color: white;
             padding: 20px 30px;
             border-radius: 15px;
@@ -184,8 +184,14 @@
             text-align: center;
             font-weight: bold;
             font-size: 1.2em;
-            animation: pulse 2s infinite;
+            box-shadow: 0 5px 20px rgba(5, 150, 105, 0.4);
+            transition: all 0.5s ease;
+        }
+        
+        .urgent-banner.urgent {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
             box-shadow: 0 5px 20px rgba(220, 38, 38, 0.4);
+            animation: pulse 2s infinite;
         }
 
         .urgent-banner .edit-btn {
@@ -311,7 +317,8 @@
         </div>
         
         <div class="urgent-banner" id="urgentBanner">
-            <span id="urgentBannerText">⚠️ PESTA: Email Orientador até 30 Novembro - <span id="daysLeft">--</span> dias restantes!</span>
+            <span id="urgentBannerText">⚠️ PESTA: Email Orientador</span>
+            <span id="daysLeftDisplay" style="flex: 1; text-align: right; margin-right: 10px;">-- dias restantes</span>
             <button class="edit-btn" id="editBannerBtn" onclick="editBanner()">✏️ Editar</button>
         </div>
         
@@ -468,67 +475,108 @@
         
         // Calculate days until PESTA deadline
         async function updatePestaDeadline() {
-            const deadline = new Date('2025-11-30');
+            // Carregar data salva ou usar default
+            const savedDate = localStorage.getItem('urgentBannerDate') || '2025-11-30';
+            const deadline = new Date(savedDate);
             const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            deadline.setHours(0, 0, 0, 0);
+            
             const diffTime = deadline - today;
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             const banner = document.getElementById('urgentBanner');
-            const element = document.getElementById('daysLeft');
+            const displayElement = document.getElementById('daysLeftDisplay');
 
             // Calculate days until exams (used after PESTA deadline)
             const examDate = new Date('2026-01-19T14:30:00');
             const diffExam = Math.ceil((examDate - today) / (1000 * 60 * 60 * 24));
 
-            if (element) {
-                element.textContent = diffDays > 0 ? diffDays : '0';
+            // Atualizar contador
+            if (displayElement) {
+                if (diffDays > 0) {
+                    displayElement.textContent = `${diffDays} dia${diffDays !== 1 ? 's' : ''} restante${diffDays !== 1 ? 's' : ''}`;
+                } else if (diffDays === 0) {
+                    displayElement.textContent = 'HOJE!';
+                } else {
+                    displayElement.textContent = 'PRAZO EXPIRADO!';
+                }
             }
 
             // If we have a custom banner text saved, apply it (localStorage takes precedence)
             const bannerTextSaved = localStorage.getItem('urgentBannerText');
             if (bannerTextSaved) {
                 const target = document.getElementById('urgentBannerText');
-                if (target) target.innerHTML = bannerTextSaved;
+                if (target) target.textContent = bannerTextSaved;
             } else if (window.firebaseEnabled) {
                 try {
                     const metaDoc = await db.collection('pesta').doc('meta').get();
                     if (metaDoc.exists && metaDoc.data().banner) {
                         const target = document.getElementById('urgentBannerText');
-                        if (target) target.innerHTML = metaDoc.data().banner;
+                        if (target) target.textContent = metaDoc.data().banner;
+                        localStorage.setItem('urgentBannerText', metaDoc.data().banner);
+                    }
+                    if (metaDoc.exists && metaDoc.data().deadlineDate) {
+                        localStorage.setItem('urgentBannerDate', metaDoc.data().deadlineDate);
                     }
                 } catch (e) {
                     console.warn('Erro ao carregar banner do Firebase', e);
                 }
             }
 
-            if (diffDays <= 0) {
-                // After 30 Nov: keep the red banner but show days until the exams
-                if (banner) {
-                    banner.style.background = 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)';
-                    banner.style.color = 'white';
-                    banner.style.fontWeight = 'bold';
+            // Mudar cor do banner baseado na proximidade
+            if (banner) {
+                if (diffDays <= 2 && diffDays >= 0) {
+                    banner.classList.add('urgent');
+                } else if (diffDays < 0) {
+                    banner.classList.add('urgent');
+                    // After deadline: show days until the exams
                     const target = document.getElementById('urgentBannerText');
-                    if (target) target.innerHTML = '📅 Dias até aos exames: <span id="examDaysBanner">' + (diffExam > 0 ? diffExam : 0) + '</span>';
+                    if (target) target.textContent = '📅 Dias até aos exames';
+                    if (displayElement) displayElement.textContent = (diffExam > 0 ? diffExam : 0) + ' dias';
+                } else {
+                    banner.classList.remove('urgent');
                 }
-            } else if (diffDays <= 3) {
-                if (banner) banner.style.animation = 'pulse 1s infinite';
             }
         }
 
-        // Edit the banner text (simple prompt)
+        // Edit the banner text and date
         async function editBanner() {
-            const current = document.getElementById('urgentBannerText').innerHTML;
-            const value = prompt('Editar mensagem de alerta:', current);
-            if (value === null) return; // cancel
-            document.getElementById('urgentBannerText').innerHTML = value;
-            localStorage.setItem('urgentBannerText', value);
-            // try to persist to Firebase meta document
+            const currentText = document.getElementById('urgentBannerText').textContent;
+            const currentDate = localStorage.getItem('urgentBannerDate') || '2025-11-30';
+            
+            const newText = prompt('Editar mensagem do banner:', currentText);
+            if (newText === null) return; // cancelled
+            
+            const newDate = prompt('Editar data limite (formato: YYYY-MM-DD):', currentDate);
+            if (newDate === null) return; // cancelled
+            
+            // Validar data
+            const dateTest = new Date(newDate);
+            if (isNaN(dateTest.getTime())) {
+                alert('❌ Data inválida! Use o formato YYYY-MM-DD (ex: 2025-12-31)');
+                return;
+            }
+            
+            // Atualizar interface
+            const target = document.getElementById('urgentBannerText');
+            if (target) target.textContent = newText;
+            localStorage.setItem('urgentBannerText', newText);
+            localStorage.setItem('urgentBannerDate', newDate);
+            
+            // Salvar no Firebase se disponível
             if (window.firebaseEnabled) {
                 try {
-                    await db.collection('pesta').doc('meta').set({ banner: value }, { merge: true });
+                    await db.collection('pesta').doc('meta').set({ 
+                        banner: newText,
+                        deadlineDate: newDate
+                    }, { merge: true });
                 } catch (e) {
-                    console.warn('Não foi possível guardar banner no Firebase', e);
+                    console.warn('Erro ao guardar no Firebase', e);
                 }
             }
+            
+            // Atualizar contador imediatamente
+            updatePestaDeadline();
         }
         
         // Load study progress

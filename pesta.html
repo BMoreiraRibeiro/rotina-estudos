@@ -10,6 +10,7 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
     
     <style>
         * {
@@ -51,7 +52,7 @@
         }
         
         .deadline-banner {
-            background: #dc2626;
+            background: #059669;
             color: white;
             padding: 15px 20px;
             border-radius: 10px;
@@ -60,6 +61,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: background 0.5s ease;
+        }
+        
+        .deadline-banner.urgent {
+            background: #dc2626;
         }
         
         .tabs {
@@ -624,6 +630,97 @@
             font-size: 4em;
             margin-bottom: 15px;
         }
+        
+        /* File Upload Styles */
+        .file-upload-area {
+            background: #1e293b;
+            border: 2px dashed #475569;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        
+        .file-upload-area:hover {
+            border-color: #8b5cf6;
+            background: #1e3a5f;
+        }
+        
+        .file-upload-area.drag-over {
+            border-color: #10b981;
+            background: #064e3b;
+        }
+        
+        .file-list {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .file-item {
+            background: #1e293b;
+            padding: 15px 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s;
+            border: 1px solid #334155;
+        }
+        
+        .file-item:hover {
+            background: #334155;
+            border-color: #8b5cf6;
+        }
+        
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+        }
+        
+        .file-icon {
+            font-size: 2em;
+        }
+        
+        .file-details {
+            flex: 1;
+        }
+        
+        .file-name {
+            color: #e2e8f0;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .file-meta {
+            color: #94a3b8;
+            font-size: 0.85em;
+        }
+        
+        .file-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .upload-progress {
+            margin-top: 10px;
+        }
+        
+        .progress-bar {
+            background: #334155;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #10b981, #059669);
+            height: 100%;
+            transition: width 0.3s;
+        }
     </style>
 </head>
 <body>
@@ -631,10 +728,10 @@
         <div class="header">
             <h1>🎯 Projeto PESTA</h1>
             <p>Torre Automática de Airsoft com Computer Vision</p>
-            <div class="deadline-banner">
-                <span id="deadlineText">⚠️ DEADLINE: Email Orientador até 30 Novembro 2025</span>
-                <button class="btn-small" onclick="editDeadlineBanner()" title="Editar banner">✏️</button>
-                <span id="deadlineCounter">-- dias restantes</span>
+            <div class="deadline-banner" id="deadlineBanner">
+                <span id="deadlineText">⚠️ DEADLINE: Email Orientador</span>
+                <span id="deadlineCounter" style="flex: 1; text-align: right; margin-right: 10px;">-- dias restantes</span>
+                <button class="btn-small" onclick="editDeadlineBanner()" title="Editar mensagem e data">✏️</button>
             </div>
             <div id="firebaseStatus" style="margin-top: 10px; padding: 8px; border-radius: 5px; font-size: 0.9em; text-align: center; display: none;">
                 <span id="firebaseStatusText"></span>
@@ -645,6 +742,7 @@
             <button class="tab active" onclick="switchTab('overview')">📊 Visão Geral</button>
             <button class="tab" onclick="switchTab('tasks')">✅ Tarefas</button>
             <button class="tab" onclick="switchTab('log')">📝 Log de Desenvolvimento</button>
+            <!-- <button class="tab" onclick="switchTab('files')">📎 Ficheiros</button> -->
             <button class="tab" onclick="switchTab('resources')">📚 Recursos</button>
         </div>
         
@@ -807,6 +905,45 @@
             </div>
         </div>
         
+        <!-- Files Tab (TEMPORARIAMENTE DESATIVADO)
+        <div id="files" class="tab-content">
+            <div class="section">
+                <h2>📎 Gestão de Ficheiros</h2>
+                <p style="color: #94a3b8; margin-bottom: 20px;">Faça upload de ficheiros Word, PDF e outros documentos para o Firebase Storage</p>
+                
+                <div class="file-upload-area" id="fileUploadArea">
+                    <div style="font-size: 3em; margin-bottom: 10px;">📤</div>
+                    <h3 style="color: #a78bfa; margin-bottom: 10px;">Arraste ficheiros aqui ou clique para selecionar</h3>
+                    <p style="color: #94a3b8; margin-bottom: 15px;">Formatos suportados: PDF, DOCX, DOC, TXT, PNG, JPG, ZIP, etc.</p>
+                    <input type="file" id="fileInput" style="display: none;" multiple onchange="handleFileSelect(event)">
+                    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                        📁 Selecionar Ficheiros
+                    </button>
+                    <div id="uploadProgress" class="upload-progress" style="display: none;">
+                        <div style="color: #94a3b8; font-size: 0.9em; margin-bottom: 5px;">
+                            <span id="uploadStatus">A enviar...</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="color: #a78bfa;">📚 Ficheiros Guardados</h3>
+                    <button class="btn btn-secondary" onclick="loadFiles()">🔄 Atualizar Lista</button>
+                </div>
+                
+                <div id="filesContainer" class="file-list">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📂</div>
+                        <p>Nenhum ficheiro carregado ainda</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        -->
+        
         <!-- Resources Tab -->
         <div id="resources" class="tab-content">
             <div class="section">
@@ -944,11 +1081,13 @@
         
         // Inicializar Firebase
         let db = null;
+        let storage = null;
         let firebaseEnabled = false;
         
         try {
             firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
+            storage = firebase.storage();
             firebaseEnabled = true;
             console.log('✅ Firebase conectado');
         } catch (error) {
@@ -999,15 +1138,19 @@
                 statusTextEl.textContent = '🔄 Sincronizando com Firebase...';
                 
                 await loadTasksFromFirebase();
-                // load meta (order/banner) if available
+                // load meta (order/banner/date) if available
                 try {
                     const metaDoc = await db.collection('pesta').doc('meta').get();
                     if (metaDoc.exists) {
                         const md = metaDoc.data() || {};
                         categoriesOrder = md.order || Object.keys(tasks || {});
                         if (md.banner) {
-                            const bannerEl = document.querySelector('.deadline-banner span');
-                            if (bannerEl) bannerEl.innerHTML = md.banner;
+                            const bannerEl = document.getElementById('deadlineText');
+                            if (bannerEl) bannerEl.textContent = md.banner;
+                            localStorage.setItem('pestaBannerText', md.banner);
+                        }
+                        if (md.deadlineDate) {
+                            localStorage.setItem('pestaDeadlineDate', md.deadlineDate);
                         }
                     } else {
                         categoriesOrder = Object.keys(tasks || {});
@@ -1033,11 +1176,11 @@
                 statusEl.style.background = '#dc2626';
                 statusTextEl.textContent = '⚠️ Firebase não configurado - usando apenas localStorage';
                 setTimeout(() => { statusEl.style.display = 'none'; }, 5000);
-                // load banner text from localStorage if available
+                // load banner text and date from localStorage if available
                 const savedBanner = localStorage.getItem('pestaBannerText');
                 if (savedBanner) {
                     const bannerEl = document.getElementById('deadlineText');
-                    if (bannerEl) bannerEl.innerHTML = savedBanner;
+                    if (bannerEl) bannerEl.textContent = savedBanner;
                 }
             }
             
@@ -1095,13 +1238,18 @@
                 ],
                 'Documentação': [
                     { id: 21, name: 'Estrutura do relatório', completed: false, collapsed: false, children: [] },
-                    { id: 22, name: 'Introdução + Estado da Arte', completed: false, collapsed: false, children: [] },
+                    { id: 22, name: 'Introdução + Estado da Arte', completed: false, collapsed: false, children: [
+                        { id: 29, name: 'Seleção de projetos similares para estado da arte', completed: false, collapsed: false, children: [] },
+                        { id: 30, name: 'Criar quadro comparativo: pontos fortes e objetivos de cada projeto', completed: false, collapsed: false, children: [] },
+                        { id: 31, name: 'Criar quadro de características técnicas comparativas', completed: false, collapsed: false, children: [] }
+                    ] },
                     { id: 23, name: 'Metodologia + Arquitetura', completed: false, collapsed: false, children: [] },
                     { id: 24, name: 'Implementação', completed: false, collapsed: false, children: [] },
                     { id: 25, name: 'Testes e Resultados', completed: false, collapsed: false, children: [] },
                     { id: 26, name: 'Conclusões + Trabalho Futuro', completed: false, collapsed: false, children: [] },
                     { id: 27, name: 'Criar poster científico', completed: false, collapsed: false, children: [] },
-                    { id: 28, name: 'Revisão final relatório', completed: false, collapsed: false, children: [] }
+                    { id: 28, name: 'Revisão final relatório', completed: false, collapsed: false, children: [] },
+                    { id: 32, name: 'Verificar possibilidade upload ficheiros (Word/PDF) para BD', completed: false, collapsed: false, children: [] }
                 ]
             };
         }
@@ -1120,45 +1268,86 @@
                 renderLogs();
             } else if (tabName === 'overview') {
                 updateStats();
+            } else if (tabName === 'files') {
+                loadFiles();
             }
         }
         
         // Deadline counter
         function updateDeadline() {
-            const deadline = new Date('2025-11-30');
+            // Carregar data salva ou usar default
+            const savedDate = localStorage.getItem('pestaDeadlineDate') || '2025-11-30';
+            const deadline = new Date(savedDate);
             const today = new Date();
+            today.setHours(0, 0, 0, 0); // Reset time to midnight for accurate day counting
+            deadline.setHours(0, 0, 0, 0);
+            
             const diffTime = deadline - today;
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             
             const counter = document.getElementById('deadlineCounter');
+            const banner = document.getElementById('deadlineBanner');
+            
             if (counter) {
-                counter.textContent = diffDays > 0 ? `${diffDays} dias restantes` : 'PRAZO EXPIRADO!';
-                if (diffDays <= 3 && diffDays > 0) {
-                    counter.style.background = '#7f1d1d';
-                    counter.style.padding = '5px 15px';
-                    counter.style.borderRadius = '5px';
+                if (diffDays > 0) {
+                    counter.textContent = `${diffDays} dia${diffDays !== 1 ? 's' : ''} restante${diffDays !== 1 ? 's' : ''}`;
+                } else if (diffDays === 0) {
+                    counter.textContent = 'HOJE!';
+                } else {
+                    counter.textContent = 'PRAZO EXPIRADO!';
+                }
+            }
+            
+            // Mudar cor do banner baseado na proximidade
+            if (banner) {
+                if (diffDays <= 2 && diffDays >= 0) {
+                    banner.classList.add('urgent');
+                } else if (diffDays < 0) {
+                    banner.classList.add('urgent');
+                } else {
+                    banner.classList.remove('urgent');
                 }
             }
         }
 
-        // Edit the deadline/banner text
+        // Edit the deadline/banner text and date
         async function editDeadlineBanner() {
             const el = document.getElementById('deadlineText');
-            const current = el ? el.innerHTML : '';
-            const value = prompt('Editar texto do banner de DEADLINE:', current);
-            if (value === null) return; // cancelled
-            if (el) el.innerHTML = value;
-            // save to meta doc
-            categoriesOrder = categoriesOrder || Object.keys(tasks || {});
+            const currentText = el ? el.textContent : '⚠️ DEADLINE: Email Orientador';
+            const currentDate = localStorage.getItem('pestaDeadlineDate') || '2025-11-30';
+            
+            const newText = prompt('Editar mensagem do banner:', currentText);
+            if (newText === null) return; // cancelled
+            
+            const newDate = prompt('Editar data limite (formato: YYYY-MM-DD):', currentDate);
+            if (newDate === null) return; // cancelled
+            
+            // Validar data
+            const dateTest = new Date(newDate);
+            if (isNaN(dateTest.getTime())) {
+                alert('❌ Data inválida! Use o formato YYYY-MM-DD (ex: 2025-12-31)');
+                return;
+            }
+            
+            // Atualizar interface
+            if (el) el.textContent = newText;
+            localStorage.setItem('pestaBannerText', newText);
+            localStorage.setItem('pestaDeadlineDate', newDate);
+            
+            // Salvar no Firebase
             if (firebaseEnabled) {
                 try {
-                    await db.collection('pesta').doc('meta').set({ banner: value }, { merge: true });
+                    await db.collection('pesta').doc('meta').set({ 
+                        banner: newText,
+                        deadlineDate: newDate 
+                    }, { merge: true });
                 } catch (e) {
                     console.warn('Erro ao guardar banner no Firebase', e);
                 }
             }
-            // also keep in localStorage
-            localStorage.setItem('pestaBannerText', value);
+            
+            // Atualizar contador imediatamente
+            updateDeadline();
         }
         
         // Tasks management - Hierarchical recursive rendering
@@ -2018,6 +2207,257 @@ ${log.text}
             document.getElementById('completedTasks').textContent = completedTasks;
             document.getElementById('totalLogs').textContent = logs.length;
             document.getElementById('progressPercent').textContent = percentage + '%';
+        }
+        
+        // ===== FILE MANAGEMENT FUNCTIONS =====
+        
+        // Setup drag and drop
+        const fileUploadArea = document.getElementById('fileUploadArea');
+        if (fileUploadArea) {
+            fileUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                fileUploadArea.classList.add('drag-over');
+            });
+            
+            fileUploadArea.addEventListener('dragleave', () => {
+                fileUploadArea.classList.remove('drag-over');
+            });
+            
+            fileUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                fileUploadArea.classList.remove('drag-over');
+                const files = e.dataTransfer.files;
+                handleFileDrop(files);
+            });
+        }
+        
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            if (files.length > 0) {
+                uploadFiles(files);
+            }
+        }
+        
+        function handleFileDrop(files) {
+            if (files.length > 0) {
+                uploadFiles(files);
+            }
+        }
+        
+        async function uploadFiles(files) {
+            if (!firebaseEnabled || !storage) {
+                alert('⚠️ Firebase Storage não está configurado. Configure o Firebase para usar esta funcionalidade.');
+                return;
+            }
+            
+            const progressDiv = document.getElementById('uploadProgress');
+            const progressFill = document.getElementById('progressFill');
+            const uploadStatus = document.getElementById('uploadStatus');
+            
+            progressDiv.style.display = 'block';
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                uploadStatus.textContent = `A enviar ${file.name} (${i + 1}/${files.length})...`;
+                
+                try {
+                    const storageRef = storage.ref();
+                    const fileRef = storageRef.child(`pesta-files/${Date.now()}-${file.name}`);
+                    
+                    const uploadTask = fileRef.put(file);
+                    
+                    await new Promise((resolve, reject) => {
+                        uploadTask.on('state_changed',
+                            (snapshot) => {
+                                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                                progressFill.style.width = progress + '%';
+                            },
+                            (error) => {
+                                console.error('Erro no upload:', error);
+                                reject(error);
+                            },
+                            async () => {
+                                const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+                                
+                                // Save metadata to Firestore
+                                await db.collection('pesta-files').add({
+                                    name: file.name,
+                                    size: file.size,
+                                    type: file.type,
+                                    url: downloadURL,
+                                    path: uploadTask.snapshot.ref.fullPath,
+                                    uploadedAt: firebase.firestore.FieldValue.serverTimestamp()
+                                });
+                                
+                                resolve();
+                            }
+                        );
+                    });
+                    
+                } catch (error) {
+                    console.error('Erro ao enviar ficheiro:', error);
+                    alert(`Erro ao enviar ${file.name}: ${error.message}`);
+                }
+            }
+            
+            uploadStatus.textContent = '✅ Upload concluído!';
+            progressFill.style.width = '100%';
+            
+            setTimeout(() => {
+                progressDiv.style.display = 'none';
+                progressFill.style.width = '0%';
+                document.getElementById('fileInput').value = '';
+            }, 2000);
+            
+            loadFiles();
+        }
+        
+        async function loadFiles() {
+            const container = document.getElementById('filesContainer');
+            
+            if (!firebaseEnabled || !db) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <p>Firebase não está configurado. Configure o Firebase para usar esta funcionalidade.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            try {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔄</div>
+                        <p>A carregar ficheiros...</p>
+                    </div>
+                `;
+                
+                const snapshot = await db.collection('pesta-files').orderBy('uploadedAt', 'desc').get();
+                
+                if (snapshot.empty) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📂</div>
+                            <p>Nenhum ficheiro carregado ainda</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = '';
+                
+                snapshot.forEach(doc => {
+                    const file = doc.data();
+                    const fileItem = createFileItem(doc.id, file);
+                    container.appendChild(fileItem);
+                });
+                
+            } catch (error) {
+                console.error('Erro ao carregar ficheiros:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">❌</div>
+                        <p>Erro ao carregar ficheiros: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function createFileItem(fileId, file) {
+            const div = document.createElement('div');
+            div.className = 'file-item';
+            
+            const icon = getFileIcon(file.type, file.name);
+            const size = formatFileSize(file.size);
+            const date = file.uploadedAt ? new Date(file.uploadedAt.toDate()).toLocaleString('pt-PT') : 'Data desconhecida';
+            
+            div.innerHTML = `
+                <div class="file-info">
+                    <div class="file-icon">${icon}</div>
+                    <div class="file-details">
+                        <div class="file-name">${escapeHtml(file.name)}</div>
+                        <div class="file-meta">${size} • ${date}</div>
+                    </div>
+                </div>
+                <div class="file-actions">
+                    <button class="btn-small" onclick="downloadFile('${file.url}', '${escapeHtml(file.name)}')" title="Descarregar">
+                        ⬇️
+                    </button>
+                    <button class="btn-small" onclick="viewFile('${file.url}')" title="Ver/Abrir">
+                        👁️
+                    </button>
+                    <button class="btn-small danger" onclick="deleteFile('${fileId}', '${file.path}')" title="Apagar">
+                        🗑️
+                    </button>
+                </div>
+            `;
+            
+            return div;
+        }
+        
+        function getFileIcon(type, name) {
+            const ext = name.split('.').pop().toLowerCase();
+            
+            if (type.includes('pdf') || ext === 'pdf') return '📄';
+            if (type.includes('word') || ext === 'doc' || ext === 'docx') return '📝';
+            if (type.includes('image') || ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return '🖼️';
+            if (type.includes('video') || ['mp4', 'avi', 'mov'].includes(ext)) return '🎥';
+            if (type.includes('zip') || ext === 'zip' || ext === 'rar') return '📦';
+            if (ext === 'txt') return '📃';
+            if (['xls', 'xlsx'].includes(ext)) return '📊';
+            if (['ppt', 'pptx'].includes(ext)) return '📽️';
+            
+            return '📎';
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+        
+        function downloadFile(url, filename) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.target = '_blank';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+        
+        function viewFile(url) {
+            window.open(url, '_blank');
+        }
+        
+        async function deleteFile(fileId, filePath) {
+            if (!confirm('Tem a certeza que deseja apagar este ficheiro?')) {
+                return;
+            }
+            
+            if (!firebaseEnabled || !storage || !db) {
+                alert('Firebase não está configurado.');
+                return;
+            }
+            
+            try {
+                // Delete from Storage
+                const storageRef = storage.ref();
+                const fileRef = storageRef.child(filePath);
+                await fileRef.delete();
+                
+                // Delete from Firestore
+                await db.collection('pesta-files').doc(fileId).delete();
+                
+                alert('✅ Ficheiro apagado com sucesso!');
+                loadFiles();
+            } catch (error) {
+                console.error('Erro ao apagar ficheiro:', error);
+                alert('❌ Erro ao apagar ficheiro: ' + error.message);
+            }
         }
         
         // Initialize
